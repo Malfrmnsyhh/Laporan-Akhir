@@ -1,0 +1,81 @@
+flowchart TD
+    %% Styling and layout
+    classDef client fill:#EBF8FF,stroke:#3182CE,stroke-width:2px;
+    classDef gateway fill:#FEFCBF,stroke:#D69E2E,stroke-width:2px;
+    classDef service fill:#E6FFFA,stroke:#319795,stroke-width:2px;
+    classDef crossmod fill:#FFF5F5,stroke:#E53E3E,stroke-width:2px;
+    classDef db fill:#FAF5FF,stroke:#805AD5,stroke-width:2px;
+
+    subgraph CLIENT["1. Lapisan Antarmuka Pengguna (React 18 + TypeScript + Vite)"]
+        direction TB
+        UI_COA["Bagan Akun & Buku Besar<br/>- AccountListPage & AccountLedgerPage<br/>- GlJournalListPage & GlPeriodListPage<br/>- TrialBalancePage & FinancialReportsPage"]:::client
+        UI_AR["Piutang Usaha & Penagihan Berulang<br/>- ArInvoiceListPage & ArInvoiceFormPage<br/>- ArPaymentListPage & ArCustomerDetailPage<br/>- BillingContractListPage & RunMonthlyBillingModal"]:::client
+        UI_INTEG["Gerbang Penelaahan Antar-Modul<br/>- ArIntegrationPage (Review & Post Batch Tagihan Otomatis)<br/>- ApIntegrationPage (Tagihan Pengadaan Barang)<br/>- HrIntegrationPage (Beban Penggajian Karyawan)"]:::client
+        UI_CB_FA["Kas, Bank & Aset Tetap<br/>- CbAccountListPage & BankReconciliationPage<br/>- FaAssetListPage & DepreciationSchedulePage<br/>- TaxReportPage & TaxEFakturListPage"]:::client
+        UI_AXIOS["Centralized Axios Client (api-client.ts)<br/>- Header Authorization: Bearer Token<br/>- Header X-Organization-Id (Tenant Context Guard)"]:::client
+
+        UI_COA --> UI_AXIOS
+        UI_AR --> UI_AXIOS
+        UI_INTEG --> UI_AXIOS
+        UI_CB_FA --> UI_AXIOS
+    end
+
+    subgraph API_GATEWAY["2. Lapisan Pengendali & Endpoint API (Laravel 11 REST API)"]
+        direction TB
+        CTRL_COA["AccountController & GlJournalController<br/>- /coa/accounts & /gl/journals<br/>- /gl/trial-balance & /gl/periods/lock"]:::gateway
+        CTRL_AR["ArInvoiceController & ArPaymentController<br/>- /ar/invoices & /ar/invoices/{id}/void<br/>- /ar/payments (FIFO / Explicit Allocation)"]:::gateway
+        CTRL_INTEG["ArIntegrationController & BiBillingContractController<br/>- GET /integration/ar (Antrean Draft Invoice)<br/>- POST /integration/ar/post-batch (Posting Jurnal Massal)<br/>- POST /billing/run (Mesin Penagihan Bulanan)"]:::gateway
+        CTRL_CB["CbAccountController & BankReconciliationController<br/>- /cb/mutations & /cb/bank-statements/auto-match"]:::gateway
+        CTRL_REP["FinancialReportingController<br/>- /financial-reports/balance-sheet & profit-loss<br/>- /financial-reports/cash-flow & aging-ar"]:::gateway
+    end
+
+    subgraph FIN_SERVICES["3. Lapisan Layanan Domain & Mesin Akuntansi (app/Services/)"]
+        direction TB
+        SRV_GL["GeneralLedgerService (Pintu Gerbang Tunggal GL)<br/>- postJournal(): Validasi Atomik Double-Entry<br/>- Balance Guard: Sum Debit == Sum Credit<br/>- Assert Periode Terbuka (GlPeriod) & Idempotency Guard<br/>- reverseJournal(): Pembalikan Jurnal Terkendali"]:::service
+        SRV_AR["AccountsReceivableService<br/>- createInvoice(): Draf Tagihan & Resolusi CoA Pendapatan<br/>- postInvoice(): Transisi Draf -> Terbit & Pemicu Jurnal GL<br/>- buildInvoiceJournalLines(): Template Mapping Akun<br/>- receivePayment(): Alokasi FIFO & Uang Muka Pelanggan"]:::service
+        SRV_BILL["BillingIntegrationService<br/>- registerContract(): Pendaftaran Kontrak Berulang<br/>- runMonthlyBilling(): Otomasi Draf Invoice Bulanan<br/>- Idempotent Period Tracking (last_billed_period)"]:::service
+        SRV_CB["CashBankService & BankReconciliationService<br/>- Rekonsiliasi Otomatis Rekening Koran & Mutasi Kas"]:::service
+        SRV_REP["FinancialReportingService & TrialBalanceService<br/>- Neraca Saldo, Laba Rugi, Neraca Keuangan, Arus Kas"]:::service
+    end
+
+    subgraph UPSTREAM_MODULES["4. Integrasi Modul Hulu (Pemicu Transaksi Finansial Otomatis)"]
+        direction TB
+        MOD_DCOPS["DataCenterOps (Operasional Fisik)<br/>- UsageRecordBillable (Remote Hands, Daya Over-Quota)<br/>- CreateUsageBilling Listener<br/>- Menghasilkan Draf ArInvoice (reference_type: remote_hands)"]:::crossmod
+        MOD_CRM["CrmSales (Komersial & Kontrak)<br/>- Event ContractActivated -> RegisterBillingContract<br/>- Pendaftaran fin_bi_billing_contract<br/>- invoiceOneTimeCharges() -> ArInvoice Setup/Install"]:::crossmod
+        MOD_PROC["ProcurementInventory (Pengadaan & Logistik)<br/>- Goods Receipt Note (GRN) Confirmed<br/>- Menghasilkan Draf ApBill ke ApIntegrationController"]:::crossmod
+        MOD_CORE["CorePlatform (Kernel Fondasi)<br/>- ScopesOrganization Trait (Isolasi Multi-Tenancy)<br/>- API Token Passport & Dynamic RBAC Permission"]:::crossmod
+    end
+
+    subgraph DATABASE["5. Lapisan Basis Data MySQL (fin_* Schema)"]
+        direction TB
+        subgraph DB_COA["Bagan Akun & Buku Besar"]
+            DB_ACC[("fin_accounts (Chart of Accounts)<br/>- account_code (111001, 112001, 411001, dll)<br/>- account_name, account_type, normal_balance")]:::db
+            DB_GL[("fin_gl_journals & fin_gl_periods<br/>- journal_number, journal_date, source_module<br/>- account_id, debit, credit, status")]:::db
+        end
+
+        subgraph DB_AR_AP["Piutang Usaha & Hutang Usaha"]
+            DB_INV[("fin_ar_invoices & fin_ar_invoice_lines<br/>- invoice_number, customer_id, total_amount<br/>- reference_type: contract | remote_hands<br/>- status: draft | posted | paid | void")]:::db
+            DB_PAY[("fin_ar_payments & allocations<br/>- payment_number, amount, payment_date<br/>- allocated_amount, unallocated_amount")]:::db
+            DB_BILL[("fin_ap_bills & fin_ap_payments<br/>- bill_number, vendor_id, total_amount")]:::db
+        end
+
+        subgraph DB_INTEG["Integrasi Penagihan & Kas-Bank"]
+            DB_CTR[("fin_bi_billing_contracts & run_logs<br/>- contract_number, monthly_amount, billing_day<br/>- last_billed_period, revenue_account_id")]:::db
+            DB_CB[("fin_cb_accounts & fin_cb_mutations<br/>- account_name, balance, mutation_type")]:::db
+            DB_FA[("fin_fa_assets & fin_tax_efakturs<br/>- asset_code, acquisition_cost, tax_number")]:::db
+        end
+    end
+
+    CLIENT -->|HTTP REST + Bearer Token + X-Organization-Id| API_GATEWAY
+    API_GATEWAY --> FIN_SERVICES
+    FIN_SERVICES --> DATABASE
+
+    MOD_DCOPS ==>|Trigger Usage Billing| SRV_AR
+    MOD_CRM ==>|Trigger Register Contract| SRV_BILL
+    MOD_PROC ==>|Trigger Hutang Vendor| FIN_SERVICES
+    
+    SRV_BILL -->|Generate Monthly Draf| SRV_AR
+    SRV_AR -->|Submit Draf Invoice| CTRL_INTEG
+    CTRL_INTEG -->|Finance Review & Post Batch| SRV_AR
+    SRV_AR ==>|Posting Double-Entry Jurnal| SRV_GL
+    SRV_GL --> DB_GL
