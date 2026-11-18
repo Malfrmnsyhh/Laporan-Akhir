@@ -1,0 +1,82 @@
+flowchart TD
+    %% Styling definitions
+    classDef client fill:#EBF8FF,stroke:#3182CE,stroke-width:2px;
+    classDef gateway fill:#FEFCBF,stroke:#D69E2E,stroke-width:2px;
+    classDef service fill:#E6FFFA,stroke:#319795,stroke-width:2px;
+    classDef entity fill:#FAF5FF,stroke:#805AD5,stroke-width:2px;
+    classDef external fill:#FFF5F5,stroke:#E53E3E,stroke-width:2px;
+
+    subgraph CLIENT["1. Lapisan Antarmuka Pengguna (React 18 + Vite SPA)"]
+        direction TB
+        UI_PROC["Pengadaan & Vendor<br/>- PurchaseRequestListPage (FPPBJ Form)<br/>- PurchaseOrderDetailPage & Convert Modal<br/>- VendorQuotationListPage & Compare Matrix<br/>- VendorPickingModal & PaymentRequestListPage (FPP)"]:::client
+        UI_WH["Gudang & Pergerakan Stok<br/>- WarehouseListPage & ItemListPage<br/>- StockMovementPage (Kartu Stok Ledger)<br/>- StockOpnamePage & Physical Count Form<br/>- GoodsReceiptPage (GRN) & GoodsHandoverPage (FSTB)"]:::client
+        UI_ASSET["Aset & Formulir Operasional<br/>- AssetListPage (Detail Aset & Tag QR)<br/>- ItemLoanPage (FPBG) & DamagedItemReturnPage (FPRG)<br/>- WarrantyClaimPage (FGBG) & ServiceLogPage"]:::client
+        AXIOS["Axios HTTP Client (api-client.ts)<br/>- Bearer Token Authentication<br/>- Context Header: X-Organization-Id"]:::client
+
+        UI_PROC --> AXIOS
+        UI_WH --> AXIOS
+        UI_ASSET --> AXIOS
+    end
+
+    subgraph GATEWAY["2. Lapisan API Gateway & Middleware Pipeline (Laravel 11)"]
+        direction TB
+        MW_AUTH["auth:api & core.active<br/>- Passport Token Authentication<br/>- Pemeriksaan Status Akun Aktif & Email"]:::gateway
+        MW_ORG["SetOrganizationContext<br/>- Ekstraksi Header X-Organization-Id<br/>- Menetapkan Atribut Context Tenant"]:::gateway
+        MW_RBAC["ApiPermissionMiddleware<br/>- purchase-request.manage, purchase-order.manage<br/>- goods-receipt.manage, inventory.manage"]:::gateway
+        MW_ESS["mobile.employee Bridge<br/>- Resolusi user_id -> employee_id<br/>- Mengamankan Endpoint Swalayan /me/*"]:::gateway
+
+        MW_AUTH --> MW_ORG --> MW_RBAC --> MW_ESS
+    end
+
+    subgraph SERVICES["3. Lapisan Service Layer (Domain Logic & Orchestration)"]
+        direction TB
+        SRV_PR["PurchaseRequestService<br/>- Validasi FPPBJ & Resolusi Kepala Posisi<br/>- Submit Workflow Berjenjang (Tier Approval)<br/>- Payload 'nilai_pengadaan' untuk Matcher Matrix"]:::service
+        SRV_PO["PurchaseOrderService & VendorQuotationService<br/>- Komparasi Multi-Quotation & Konfirmasi Picking<br/>- Konversi PR -> PO Terikat Quotation Pemenang<br/>- Orkestrasi Persetujuan Berjenjang & Kuorum"]:::service
+        SRV_GRN["GoodsReceiptService (GRN Core Orchestrator)<br/>- Ingest Penerimaan Barang dari PO Disetujui<br/>- Trigger Multidimensi saat GRN Diposting:<br/>  1. Provisioning Device ke DataCenterOps (spare)<br/>  2. Registrasi Aset Internal (AST-...)<br/>  3. Kapitalisasi Aset Tetap ke Finance<br/>  4. Pembuatan Draf AP Bill Vendor<br/>  5. Penambahan Saldo Stok Gudang"]:::service
+        SRV_STOCK["StockMovementService & GoodsHandoverService<br/>- Immutable Stock Ledger (proc_stock_movement)<br/>- ALLOW_MANUAL_STOCK_IN = false<br/>- Penerbitan FSTB & Pengurangan Stok Real-Time<br/>- Evaluasi Reorder Point & Rekomendasi Otomatis"]:::service
+        SRV_MATCH["ThreeWayMatchService & WarrantyService<br/>- Validasi 3 Arah: PO vs GRN vs Tagihan AP Bill<br/>- Klaim Garansi Barang Cacat (FGBG)<br/>- Peminjaman Alat (FPBG) & Retur Rusak (FPRG)"]:::service
+    end
+
+    subgraph ENTITIES["4. Lapisan Persistensi & Model Relasional (MySQL)"]
+        direction TB
+        ENT_PR["proc_purchase_request & lines<br/>- Dokumen FPPBJ, Estimasi Harga, Justifikasi"]:::entity
+        ENT_PO["proc_purchase_order & lines<br/>- Kontrak Pesanan Pembelian & Termin Bayar"]:::entity
+        ENT_RFQ["proc_vendor_quotation & proc_vendor_picking<br/>- Penawaran Harga Rekanan & Penetapan Pemenang"]:::entity
+        ENT_GRN["proc_goods_receipt & lines<br/>- Bukti Penerimaan Barang & Referensi BAST"]:::entity
+        ENT_STOCK["proc_warehouse, proc_item, proc_stock_movement<br/>- Master Gudang, Katalog Item, Buku Besar Mutasi"]:::entity
+        ENT_ASSET["proc_goods_handover & proc_asset<br/>- Berita Acara FSTB & Registrasi Fisik Aset"]:::entity
+    end
+
+    subgraph EXTERNAL["5. Integrasi Lintas Modul MSDC ERP"]
+        direction TB
+        EXT_DCOPS["DataCenterOps (Team 3)<br/>- DeviceService::create() saat GRN is_dc_asset<br/>- Auto-Numbering device_provisioning (PROV-...)<br/>- Perangkat Disimpan sebagai Spare di Data Center Site"]:::external
+        EXT_CORE["CorePlatform (Team 1)<br/>- WorkflowEngineService: Persetujuan PR/PO/FPP/FPRG<br/>- Approval Matrix: Kuorum Voting untuk Nilai Besar<br/>- NumberSequence::next(): FPPBJ, PO, GRN, FSTB, AST<br/>- FileManagementService: Berkas BAST, Bukti Kerusakan"]:::external
+        EXT_FIN["FinanceAccounting (Team 4)<br/>- AccountsPayableService: Pembuatan Draf AP Bill<br/>- FixedAssetService: Kapitalisasi Aset Tetap<br/>- Vendor Advance: Pemotongan Uang Muka DP PO<br/>- Cost Center Allocation per Baris Pembelian"]:::external
+        EXT_HR["HrServiceSupport (Team 6)<br/>- Resolusi Atasan via Employee::position::head<br/>- Atribusi Karyawan Pemohon & Penerima FSTB<br/>- Tanda Tangan Digital Pejabat Pengadaan"]:::external
+    end
+
+    %% Flow connections
+    AXIOS --> MW_AUTH
+    MW_ESS --> SRV_PR
+    MW_ESS --> SRV_PO
+    MW_ESS --> SRV_GRN
+    MW_ESS --> SRV_STOCK
+    MW_ESS --> SRV_MATCH
+
+    SRV_PR --> ENT_PR
+    SRV_PO --> ENT_PO
+    SRV_PO --> ENT_RFQ
+    SRV_GRN --> ENT_GRN
+    SRV_GRN --> ENT_STOCK
+    SRV_GRN --> ENT_ASSET
+    SRV_STOCK --> ENT_STOCK
+    SRV_STOCK --> ENT_ASSET
+
+    %% Cross-module relationships
+    SRV_PR -.->|Submit Approval Berjenjang| EXT_CORE
+    SRV_PR -.->|Resolusi Kepala Posisi / Atasan| EXT_HR
+    SRV_PO -.->|Submit Approval & Kuorum Voting| EXT_CORE
+    SRV_GRN -.->|Auto-Provisioning Hardware Spare| EXT_DCOPS
+    SRV_GRN -.->|Buat Tagihan AP Bill & Aset Tetap| EXT_FIN
+    SRV_MATCH -.->|Cocokkan Faktur & PO| EXT_FIN
+    ENT_ASSET -.->|Serah Terima Fisik ke Karyawan| EXT_HR
