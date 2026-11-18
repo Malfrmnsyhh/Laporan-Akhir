@@ -1,0 +1,32 @@
+flowchart TD
+    subgraph IoT["Sensor Lapangan & CCTV"]
+        Sensor["Sensor IoT Suhu & Kelembapan"]
+        Camera["Kamera CCTV / NVR Lorong"]
+    end
+
+    subgraph Backend["Modul Backend DataCenterOps"]
+        Ingest["API Key Ingest (iot/metric-readings)"]
+        Eval["Engine Evaluasi Ambang Batas (ASHRAE)"]
+        AlarmStore[("DB Alarm dc_alarm")]
+        MetricStore[("DB Metrik dc_metric_reading")]
+        CctvProbe["Stream Probe & Health Check"]
+        CctvStore[("DB CCTV dc_cctv_camera")]
+    end
+
+    subgraph Frontend["Antarmuka Pengguna (NOC Dashboard)"]
+        DashView["Dashboard Overview (/dc)"]
+        TeleView["Telemetri Rak (/dc/monitoring)"]
+        CctvView["Grid CCTV Live (/dc/cctv)"]
+    end
+
+    Sensor -->|Kirim Suhu & Kelembapan via API Key| Ingest
+    Ingest --> MetricStore
+    Ingest --> Eval
+    Eval -->|Jika Suhu > 27C atau < 18C| AlarmStore
+    
+    AlarmStore -.->|Tampilkan Active Alarms| DashView
+    MetricStore -.->|Grafik Tren Suhu & Kelembapan| TeleView
+
+    Camera -->|Stream RTMP/HLS| CctvProbe
+    CctvProbe -->|Enkripsi URL & Cek Status Online| CctvStore
+    CctvStore -.->|Playback HLS Langsung ke Browser| CctvView

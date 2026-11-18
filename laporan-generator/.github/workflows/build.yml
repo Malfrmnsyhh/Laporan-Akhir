@@ -1,0 +1,130 @@
+name: Build Laporan PDF
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y imagemagick xz-utils unzip python3 poppler-utils lua5.4 nodejs
+          wget -q "https://github.com/jgm/pandoc/releases/download/3.7.0.2/pandoc-3.7.0.2-1-amd64.deb" -O /tmp/pandoc.deb
+          sudo dpkg -i /tmp/pandoc.deb
+          wget -q "https://github.com/typst/typst/releases/download/v0.15.1/typst-x86_64-unknown-linux-musl.tar.xz" -O /tmp/typst.tar.xz
+          tar -xJf /tmp/typst.tar.xz -C /tmp
+          sudo mv /tmp/typst-x86_64-unknown-linux-musl/typst /usr/local/bin/typst
+          rm -rf /tmp/pandoc.deb /tmp/typst.tar.xz /tmp/typst-x86_64-unknown-linux-musl
+
+      - name: Run Test Suite
+        run: ./test.sh
+
+      - name: Run Python Unit Tests
+        run: python3 scripts/test_scripts.py
+
+      - name: Run MCP Server Integration Tests
+        run: node tests/test_mcp.js
+
+      - name: Build and Verify Examples
+        run: ./examples/build_examples.sh
+
+      - name: Build PDF and DOCX
+        run: |
+          ./build.sh templates/default
+          ./build-docx.sh templates/default
+          cp templates/default/Laporan.pdf .
+          cp templates/default/Laporan.docx .
+
+      - name: Upload PDF and DOCX artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: Laporan
+          path: |
+            Laporan.pdf
+            Laporan.docx
+
+  nix-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: cachix/install-nix-action@v31
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+      - name: Run full suite in the flake environment
+        run: nix develop --command bash -lc './test.sh'
+
+  windows-parity:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install document dependencies
+        shell: pwsh
+        run: .\scripts\setup-deps.ps1 -Force
+      - name: Check JavaScript syntax and Python unit tests
+        shell: pwsh
+        run: |
+          node --check bin/laporan-generator.js
+          node --check lib/mcp.js
+          node --check tests/test_mcp.js
+          python scripts/test_scripts.py
+      - name: Test native PowerShell commands
+        shell: pwsh
+        run: |
+          .\laporan.ps1 help
+          .\laporan.ps1 preset list
+          .\laporan.ps1 preset validate
+          if ($LASTEXITCODE -and $LASTEXITCODE -ne 0) { throw "Preset validation failed: $LASTEXITCODE" }
+      - name: Build PDF and DOCX through native PowerShell
+        shell: pwsh
+        run: |
+          $project = Join-Path $env:TEMP ("laporan-ci-" + [guid]::NewGuid())
+          node bin/laporan-generator.js init $project --preset standard
+          if ($LASTEXITCODE -ne 0) { throw "Project initialization failed: $LASTEXITCODE" }
+          Push-Location $project
+          try {
+            .\laporan.ps1 build
+            if ($LASTEXITCODE -ne 0) { throw "PDF/DOCX build failed: $LASTEXITCODE" }
+            if (-not (Test-Path Laporan.pdf) -or -not (Test-Path Laporan.docx)) { throw "Build outputs are missing" }
+          } finally {
+            Pop-Location
+            Remove-Item $project -Recurse -Force -ErrorAction SilentlyContinue
+          }
+      - name: Test MCP integration on Windows
+        shell: pwsh
+        run: node tests/test_mcp.js
+
+  macos-validation:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install document dependencies
+        run: brew install pandoc typst imagemagick poppler lua
+      - name: Run full test suite
+        run: ./test.sh
+      - name: Run Python unit tests
+        run: python3 scripts/test_scripts.py
+      - name: Run MCP integration tests
+        run: node tests/test_mcp.js
+      - name: Build example documents
+        run: ./examples/build_examples.sh

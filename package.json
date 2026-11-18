@@ -1,0 +1,19 @@
+{
+  "name": "laporan_akhir",
+  "version": "1.0.0",
+  "description": "Workspace Laporan Akhir Magang & PKL - MSDC ERP",
+  "scripts": {
+    "render-diagrams": "python scripts/render_diagrams.py",
+    "build:magang": "powershell -ExecutionPolicy Bypass -File 01-laporan-magang/laporan.ps1 build",
+    "build:pkl": "powershell -ExecutionPolicy Bypass -File 02-laporan-pkl/laporan.ps1 build",
+    "build:all": "npm run build:magang && npm run build:pkl"
+  },
+  "keywords": [
+    "laporan-magang",
+    "laporan-pkl",
+    "msdc-erp",
+    "datacenter-ops"
+  ],
+  "author": "Akmal - JTV / MSDC",
+  "license": "ISC"
+}

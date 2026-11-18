@@ -1,0 +1,160 @@
+name: Release Pipeline
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  windows-validation:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install document dependencies
+        shell: pwsh
+        run: .\scripts\setup-deps.ps1 -Force
+      - name: Validate PowerShell, Python, and MCP
+        shell: pwsh
+        run: |
+          .\laporan.ps1 preset validate
+          if ($LASTEXITCODE -ne 0) { throw "Preset validation failed: $LASTEXITCODE" }
+          python scripts/test_scripts.py
+          if ($LASTEXITCODE -ne 0) { throw "Python tests failed: $LASTEXITCODE" }
+          node tests/test_mcp.js
+          if ($LASTEXITCODE -ne 0) { throw "MCP tests failed: $LASTEXITCODE" }
+      - name: Smoke-test native PDF and DOCX build
+        shell: pwsh
+        run: |
+          $project = Join-Path $env:TEMP ("laporan-release-" + [guid]::NewGuid())
+          node bin/laporan-generator.js init $project --preset standard
+          if ($LASTEXITCODE -ne 0) { throw "Initialization failed: $LASTEXITCODE" }
+          Push-Location $project
+          try {
+            .\laporan.ps1 build
+            if ($LASTEXITCODE -ne 0) { throw "Build failed: $LASTEXITCODE" }
+            if (-not (Test-Path Laporan.pdf) -or -not (Test-Path Laporan.docx)) { throw "Build outputs are missing" }
+          } finally {
+            Pop-Location
+            Remove-Item $project -Recurse -Force -ErrorAction SilentlyContinue
+          }
+
+  macos-validation:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install document dependencies
+        run: brew install pandoc typst imagemagick poppler lua
+      - name: Run test suites
+        run: |
+          ./test.sh
+          python3 scripts/test_scripts.py
+          node tests/test_mcp.js
+          ./examples/build_examples.sh
+      - name: Build release documents
+        run: |
+          ./build.sh templates/default
+          ./build-docx.sh templates/default
+
+  nix-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: cachix/install-nix-action@v31
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+      - name: Run test suite in the flake environment
+        run: nix develop --command bash -lc './test.sh'
+
+  release:
+    runs-on: ubuntu-latest
+    needs: [windows-validation, macos-validation, nix-validation]
+    permissions:
+      contents: write
+      id-token: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y imagemagick poppler-utils xz-utils unzip python3 lua5.4 nodejs
+          wget -q "https://github.com/jgm/pandoc/releases/download/3.7.0.2/pandoc-3.7.0.2-1-amd64.deb" -O /tmp/pandoc.deb
+          sudo dpkg -i /tmp/pandoc.deb
+          wget -q "https://github.com/typst/typst/releases/download/v0.15.1/typst-x86_64-unknown-linux-musl.tar.xz" -O /tmp/typst.tar.xz
+          tar -xJf /tmp/typst.tar.xz -C /tmp
+          sudo mv /tmp/typst-x86_64-unknown-linux-musl/typst /usr/local/bin/typst
+          rm -rf /tmp/pandoc.deb /tmp/typst.tar.xz /tmp/typst-x86_64-unknown-linux-musl
+
+      - name: Run Test Suite
+        run: ./test.sh
+
+      - name: Build Report Documents
+        run: |
+          ./build.sh templates/default
+          ./build-docx.sh templates/default
+          cp templates/default/Laporan.pdf .
+          cp templates/default/Laporan.docx .
+
+      - name: Setup Node.js for npm
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+          package-manager-cache: false
+
+      - name: Ensure npm supports trusted publishing
+        run: npm install --global npm@latest
+
+      - name: Verify release tag matches package version
+        run: |
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          TAG_VERSION=${GITHUB_REF_NAME#v}
+          if [ "$PACKAGE_VERSION" != "$TAG_VERSION" ]; then
+            echo "Tag version ($TAG_VERSION) does not match package.json ($PACKAGE_VERSION)" >&2
+            exit 1
+          fi
+
+      - name: Publish to npm
+        run: npm publish --access public
+
+      - name: Extract Release Notes from CHANGELOG
+        id: changelog
+        run: |
+          TAG_NAME=${GITHUB_REF#refs/tags/}
+          CLEAN_VER=${TAG_NAME#v}
+          NOTES=$(awk "/^## \[${CLEAN_VER}\]/,/^---/" CHANGELOG.md | tail -n +2 | head -n -1)
+          if [ -z "$NOTES" ]; then
+            NOTES="Release $TAG_NAME"
+          fi
+          echo "RELEASE_NOTES<<EOF" >> $GITHUB_OUTPUT
+          echo "$NOTES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: laporan-generator ${{ github.ref_name }}
+          body: ${{ steps.changelog.outputs.RELEASE_NOTES }}
+          files: |
+            Laporan.pdf
+            Laporan.docx
+            examples/Laporan-Akademik-Example.pdf
+          draft: false
+          prerelease: false

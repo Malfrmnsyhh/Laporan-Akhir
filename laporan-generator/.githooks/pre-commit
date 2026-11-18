@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+set -e
+
+echo "=== Pre-commit: Validasi Laporan Generator ==="
+
+# Cek dependensi
+command -v pandoc >/dev/null 2>&1 || { echo "FAIL: pandoc tidak ditemukan"; exit 1; }
+command -v typst >/dev/null 2>&1 || { echo "FAIL: typst tidak ditemukan"; exit 1; }
+
+# Cek file wajib ada
+TPL_DIR="templates/default"
+for f in cover.md template.typ metadata.yml references.bib reference.docx docx.lua; do
+  [ -f "$TPL_DIR/$f" ] || [ -f "$f" ] || { echo "FAIL: $f tidak ditemukan"; exit 1; }
+done
+
+# Coba build
+echo "Build PDF..."
+./build.sh templates/default
+
+# Validasi output
+PDF_OUT="templates/default/Laporan.pdf"
+[ -f "$PDF_OUT" ] || [ -f "Laporan.pdf" ] || { echo "FAIL: Laporan.pdf tidak dihasilkan"; exit 1; }
+SIZE=$(stat -c%s "$PDF_OUT" 2>/dev/null || stat -c%s Laporan.pdf 2>/dev/null || stat -f%z "$PDF_OUT" 2>/dev/null)
+[ "$SIZE" -gt 50000 ] || { echo "FAIL: Laporan.pdf terlalu kecil ($SIZE bytes)"; exit 1; }
+rm -f "$PDF_OUT" Laporan.pdf
+
+echo "=== Pre-commit: OK ==="

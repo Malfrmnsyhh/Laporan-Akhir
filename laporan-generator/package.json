@@ -1,0 +1,69 @@
+{
+  "name": "laporan-generator",
+  "version": "4.0.0",
+  "description": "Universal Academic Report & Thesis Generator with Multi-Host AI Agent Skills & Native MCP Server",
+  "main": "bin/laporan-generator.js",
+  "bin": {
+    "laporan-generator": "bin/laporan-generator.js",
+    "laporan": "bin/laporan-generator.js",
+    "laporan-mcp": "bin/mcp-server.js"
+  },
+  "files": [
+    "bin/",
+    "lib/",
+    ".agents/",
+    "presets/",
+    "scripts/",
+    "templates/",
+    "Makefile",
+    "build.sh",
+    "build-docx.sh",
+    "laporan",
+    "laporan.ps1",
+    "completions/",
+    "docs/",
+    "README.md",
+    "LICENSE",
+    "!**/__pycache__",
+    "!**/*.pyc"
+  ],
+  "scripts": {
+    "test": "./test.sh",
+    "test:mcp": "node tests/test_mcp.js",
+    "mcp": "node bin/mcp-server.js",
+    "doctor": "node bin/laporan-generator.js doctor",
+    "stats": "node bin/laporan-generator.js stats",
+    "audit": "node bin/laporan-generator.js audit",
+    "citations:verify": "node bin/laporan-generator.js citations verify",
+    "sync-hosts": "node bin/laporan-generator.js sync-hosts",
+    "setup": "node bin/laporan-generator.js setup",
+    "prepack": "node -e \"require('./lib/sync-hosts').syncInternalResources(process.cwd())\""
+  },
+  "keywords": [
+    "typst",
+    "pandoc",
+    "academic-reports",
+    "thesis-generator",
+    "skripsi",
+    "ai-agents",
+    "mcp",
+    "model-context-protocol",
+    "antigravity",
+    "antigravity-cli",
+    "claude-code",
+    "skills"
+  ],
+  "author": "Mu'adz Hudzaifah <muadzhudzaifah511@gmail.com>",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/muadzhdz/laporan-generator.git"
+  },
+  "bugs": {
+    "url": "https://github.com/muadzhdz/laporan-generator/issues"
+  },
+  "homepage": "https://github.com/muadzhdz/laporan-generator#readme"
+}

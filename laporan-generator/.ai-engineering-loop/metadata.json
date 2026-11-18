@@ -1,0 +1,14 @@
+{
+  "contextVersion": "2.5.0",
+  "generatedAt": "2026-11-08T07:29:40.633Z",
+  "repositoryRevision": "1f943c3ee11022474045bad552f06ffd7c1ac306",
+  "projectProfile": "library",
+  "manifestChecksums": {
+    "package.json": "b4acce40e04e2853"
+  },
+  "lastReconciliation": {
+    "timestamp": "2026-11-08T07:29:40.634Z",
+    "trigger": "refresh",
+    "impact": "DRIFT_RECONCILIATION"
+  }
+}
