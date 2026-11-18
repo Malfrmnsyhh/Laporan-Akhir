@@ -77,7 +77,7 @@ def render_via_kroki(mmd_file, png_file):
     return True
 
 def main():
-    mmd_files = glob.glob(os.path.join(SOURCE_DIR, "*.mmd"))
+    mmd_files = glob.glob(os.path.join(SOURCE_DIR, "**", "*.mmd"), recursive=True)
     if not mmd_files:
         print(f"[INFO] Belum ada berkas .mmd di '{SOURCE_DIR}'.")
         print("Silakan letakkan diagram Mermaid mentah (.mmd) di folder tersebut.")
@@ -94,9 +94,16 @@ def main():
     failed = 0
 
     for mmd_path in mmd_files:
+        rel_path = os.path.relpath(mmd_path, SOURCE_DIR)
+        rel_dir = os.path.dirname(rel_path)
         basename = os.path.splitext(os.path.basename(mmd_path))[0]
-        png_path = os.path.join(RENDERED_DIR, f"{basename}.png")
-        print(f"  Rendering: {basename}.mmd -> {basename}.png ... ", end="", flush=True)
+        
+        target_dir = os.path.join(RENDERED_DIR, rel_dir)
+        os.makedirs(target_dir, exist_ok=True)
+        png_path = os.path.join(target_dir, f"{basename}.png")
+        
+        display_name = os.path.join(rel_dir, f"{basename}.mmd") if rel_dir else f"{basename}.mmd"
+        print(f"  Rendering: {display_name} -> {basename}.png ... ", end="", flush=True)
 
         try:
             if mmdc_bin:
