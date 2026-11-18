@@ -1,0 +1,72 @@
+graph TD
+    %% Styling Global
+    classDef frontend fill:#E0F2FE,stroke:#0284C7,stroke-width:2px,color:#0369A1;
+    classDef hook fill:#FEF3C7,stroke:#D97706,stroke-width:2px,color:#B45309;
+    classDef api fill:#F3E8FF,stroke:#7E22CE,stroke-width:2px,color:#6B21A8;
+    classDef service fill:#DCFCE7,stroke:#15803D,stroke-width:2px,color:#166534;
+    classDef event fill:#FCE7F3,stroke:#DB2777,stroke-width:2px,color:#9D174D;
+    classDef database fill:#F1F5F9,stroke:#475569,stroke-width:2px,color:#1E293B;
+
+    subgraph FE["1. Frontend Layer (React 18 + Tailwind CSS)"]
+        UI_TICKET["TicketListPage & TicketDetailPage<br/>(/dc/tickets)<br/><i>Log Aktivitas & Eskalasi SLA</i>"]:::frontend
+        UI_WO["WorkOrderDetailPage<br/>(/dc/work-orders/:id)<br/><i>Checklist Fisik & Resource Binding</i>"]:::frontend
+        UI_USAGE["UsageListPage<br/>(/dc/usage)<br/><i>Agregasi Metrik & Penagihan</i>"]:::frontend
+        UI_SURAT["SuratDcOpsPage & DetailPage<br/>(/dc/surat)<br/><i>BAI, Uji Terima & E-Signature</i>"]:::frontend
+    end
+
+    subgraph HOOKS["2. Client State & Query Layer (TanStack Query)"]
+        HK_TICKET["useTickets & ticketApi<br/><i>useTicketList, useUpdateTicketStatus</i>"]:::hook
+        HK_WO["useWorkOrders & workOrderApi<br/><i>useWorkOrder, useToggleWorkOrderItem</i>"]:::hook
+        HK_USAGE["useUsage & usageApi<br/><i>useUsageList, billRemoteHands</i>"]:::hook
+        HK_SURAT["useDocuments & documentApi<br/><i>useDocumentList, useSignDocument</i>"]:::hook
+    end
+
+    subgraph ROUTE["3. Routing & Security Layer (Laravel API)"]
+        RT_TICKET["/api/v1/data-center-ops/tickets<br/><i>auth:api, permission:ticket.*</i>"]:::api
+        RT_WO["/api/v1/data-center-ops/work-orders<br/><i>auth:api, permission:work-order.*</i>"]:::api
+        RT_USAGE["/api/v1/data-center-ops/usage-records<br/><i>auth:api, permission:usage-record.*</i>"]:::api
+        RT_SURAT["/api/v1/core-platform/documents<br/><i>auth:api, permission:document.*</i>"]:::api
+        RT_CRON["CheckTicketSlaEscalationsCommand<br/><i>Cron Scheduler (Tiap 15 Menit)</i>"]:::api
+    end
+
+    subgraph SERVICE["4. Controller & Domain Service Layer"]
+        SRV_TICKET["TicketService & TicketController<br/><i>Hitung SLA, State Machine, Multi-channel Alert</i>"]:::service
+        SRV_WO["WorkOrderService & WorkOrderController<br/><i>Lazy Init SO, Checklist Toggle, Milestone Contract</i>"]:::service
+        SRV_USAGE["UsageReportingService & UsageRecordController<br/><i>Idempotent Aggregator: U-Space, Power, Bandwidth, RH</i>"]:::service
+        SRV_DOC["DocumentService & DocumentController<br/><i>Workflow Engine, Versioning, QR Verification</i>"]:::service
+    end
+
+    subgraph EVENTS["5. Event Bus & Cross-Module Integration"]
+        EV_BILL["UsageRecordBillable Event<br/><i>Rate per Hour Payload</i>"]:::event
+        LST_AR["CreateUsageBilling Listener<br/><i>(Modules/FinanceAccounting)</i>"]:::event
+        SRV_NOTIF["NotificationService<br/><i>Multi-channel: Email & WhatsApp API</i>"]:::event
+    end
+
+    subgraph DB["6. Database Layer (MySQL Relational Schema)"]
+        DB_TICKET[("dc_ticket & dc_ticket_activity<br/><i>SLA Target, Durasi RH, Status</i>")]:::database
+        DB_WO[("dc_work_order & dc_work_order_item<br/><i>Checklist Layanan & Testing Flag</i>")]:::database
+        DB_USAGE[("dc_usage_record<br/><i>customer_id, usage_type, qty, unit</i>")]:::database
+        DB_DOC[("cp_doc_document & cp_doc_revision<br/><i>Naskah Dinas, Hash TTD, Audit Log</i>")]:::database
+        DB_CRM[("crm_contract & crm_sales_order<br/><i>device_installed_at, internet_installed_at</i>")]:::database
+        DB_FIN[("fi_ar_invoice & fi_ar_invoice_item<br/><i>Status: DRAFT Piutang Pelanggan</i>")]:::database
+    end
+
+    %% Hubungan Alur Data
+    UI_TICKET --> HK_TICKET --> RT_TICKET --> SRV_TICKET
+    UI_WO --> HK_WO --> RT_WO --> SRV_WO
+    UI_USAGE --> HK_USAGE --> RT_USAGE --> SRV_USAGE
+    UI_SURAT --> HK_SURAT --> RT_SURAT --> SRV_DOC
+
+    RT_CRON --> SRV_TICKET
+    SRV_TICKET -->|"Kirim Notifikasi SLA & Assignment"| SRV_NOTIF
+    SRV_TICKET --> DB_TICKET
+
+    SRV_WO --> DB_WO
+    SRV_WO -->|"Update Rekap Milestone Tanggal"| DB_CRM
+
+    SRV_USAGE --> DB_USAGE
+    SRV_USAGE -->|"Trigger Tagihan Remote Hands"| EV_BILL
+    EV_BILL --> LST_AR
+    LST_AR -->|"Generate Invoice Draft"| DB_FIN
+
+    SRV_DOC --> DB_DOC
