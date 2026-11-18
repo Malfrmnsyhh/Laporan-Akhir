@@ -1,0 +1,82 @@
+flowchart TD
+    %% Styling definitions
+    classDef client fill:#EBF8FF,stroke:#3182CE,stroke-width:2px;
+    classDef gateway fill:#FEFCBF,stroke:#D69E2E,stroke-width:2px;
+    classDef service fill:#E6FFFA,stroke:#319795,stroke-width:2px;
+    classDef entity fill:#FAF5FF,stroke:#805AD5,stroke-width:2px;
+    classDef external fill:#FFF5F5,stroke:#E53E3E,stroke-width:2px;
+
+    subgraph CLIENT["1. Lapisan Antarmuka Pengguna (React 18 + Vite SPA)"]
+        direction TB
+        UI_EMP["Manajemen Staf & Organisasi<br/>- EmployeeListPage.tsx<br/>- PositionListPage.tsx<br/>- TrainingListPage.tsx<br/>- PerformanceListPage.tsx"]:::client
+        UI_SHIFT["Jadwal & Absensi Kerja<br/>- ShiftScheduleBoard.tsx (Interactive Grid)<br/>- ShiftListPage.tsx & AttendanceListPage.tsx<br/>- LeaveListPage.tsx & OvertimeListPage.tsx<br/>- PermissionRequestListPage.tsx"]:::client
+        UI_ITIL["Layanan ITIL & Dukungan Operasional<br/>- IncidentListPage.tsx & ProblemListPage.tsx<br/>- ChangeRequestListPage.tsx<br/>- SupportTicketListPage.tsx & KbListPage.tsx"]:::client
+        UI_GA["General Affairs & Self-Service<br/>- GaFacilityPage & GaBookingPage<br/>- GaBuildingAccessPage<br/>- Mobile ESS: /me/attendance, /me/shifts"]:::client
+        AXIOS["Axios HTTP Client (api-client.ts)<br/>- Bearer Token Authentication<br/>- Context Header: X-Organization-Id"]:::client
+
+        UI_EMP --> AXIOS
+        UI_SHIFT --> AXIOS
+        UI_ITIL --> AXIOS
+        UI_GA --> AXIOS
+    end
+
+    subgraph GATEWAY["2. Lapisan API Gateway & Middleware Pipeline (Laravel 11)"]
+        direction TB
+        MW_AUTH["auth:api & core.active<br/>- Passport Token Authentication<br/>- Verifikasi Akun Aktif & Terverifikasi"]:::gateway
+        MW_ORG["SetOrganizationContext<br/>- Resolusi Header X-Organization-Id<br/>- Inject Organization Context ke Request"]:::gateway
+        MW_RBAC["ApiPermissionMiddleware<br/>- Evaluasi Izin Guard 'api'<br/>- employee.view, shift.manage, incident.manage"]:::gateway
+        MW_ESS["mobile.employee Bridge<br/>- Resolusi Otomatis user_id -> employee_id<br/>- Mengamankan Endpoint Self-Service /me/*"]:::gateway
+
+        MW_AUTH --> MW_ORG --> MW_RBAC --> MW_ESS
+    end
+
+    subgraph SERVICES["3. Lapisan Service Layer (Domain Logic & Orchestration)"]
+        direction TB
+        SRV_SHIFT["ShiftAttendanceService<br/>- Penjadwalan Roster & Drag-and-Drop Board<br/>- Shift Archival & Non-Destructive Versioning<br/>- Validasi Toleransi Keterlambatan (15 Menit)<br/>- Penanganan Shift Malam (Overnight Shift)"]:::service
+        SRV_ITIL["ItilService & SupportTicketService<br/>- Ingest Alarm Kritis DC Ops -> Incident Otomatis<br/>- Pelacakan Root Cause Problem & Link Incident<br/>- Change Request terintegrasi Workflow Approval<br/>- Eskalasi Tiket Dukungan Pelanggan & SLA"]:::service
+        SRV_PERF["PerformanceService & KpiMetricCatalog<br/>- Agregasi Kinerja Lintas Modul (Cross-Module)<br/>- Hitung Tiket DC Ops & Deal Penjualan CRM<br/>- Evaluasi Pencapaian Target KPI Posisi"]:::service
+        SRV_PAY["PayrollService & OvertimeReportingService<br/>- Rekap Jam Lembur Bulanan via WorkHourPolicy<br/>- Kalkulasi TER Pajak PPh 21 (PP 58/2023)<br/>- Potongan BPJS Kesehatan (1%) & Ketenagakerjaan<br/>- Sync Status Approval Lembur via Workflow Bridge"]:::service
+        SRV_GA["GeneralAffairsService<br/>- Booking Fasilitas (Pessimistic Lock & Overlap Guard)<br/>- Permohonan Izin Masuk Gedung (Digital Signature)"]:::service
+    end
+
+    subgraph ENTITIES["4. Lapisan Persistensi & Model Relasional (MySQL)"]
+        direction TB
+        ENT_EMP["hr_employee & hr_position<br/>- Profil, NIK, Status Kerja, Gaji Pokok<br/>- Relasi ke users, photo_file_id, signature_file_id"]:::entity
+        ENT_SHIFT["hr_shift & hr_shift_schedule<br/>- Shift Kerja & Penempatan Tanggal + Site DC<br/>- Kunci Penjadwalan Staf On-Duty"]:::entity
+        ENT_ATT["hr_attendance & hr_overtime_record<br/>- Check-in/out Log, Status (present, late, manual)<br/>- Akumulasi Lembur & Entri Payroll Bulanan"]:::entity
+        ENT_ITIL["hr_incident, hr_problem, hr_change_request<br/>- Tiket Gangguan ITIL, Root Cause Analysis<br/>- Tautan ke source_alarm_id & affected_device_id"]:::entity
+        ENT_GA["hr_ga_facility & hr_ga_facility_booking<br/>- Fasilitas Gedung & Reservasi Ruangan/Aset"]:::entity
+    end
+
+    subgraph EXTERNAL["5. Integrasi Lintas Modul MSDC ERP"]
+        direction TB
+        EXT_DCOPS["DataCenterOps (Team 3)<br/>- DashboardService::onDutyToday() Konsumsi hr_shift_schedule<br/>- Ingest Alarm DC Ops Telemetri -> Incident ITIL<br/>- Tiket Operasional DC tertaut ke Employee user_id"]:::external
+        EXT_CORE["CorePlatform (Team 1)<br/>- WorkflowEngineService (Approval Change Request & Lembur)<br/>- Centralized Number Sequence (INC, PRB, CHG, SHF, TRN)<br/>- FileManagementService (Foto Profil & TTD Digital)"]:::external
+        EXT_FIN["FinanceAccounting (Team 4)<br/>- GeneralLedgerService: Jurnal Akrual Lembur & Payroll<br/>- Cost Center Allocation per Departemen/Karyawan"]:::external
+        EXT_CRM["CrmSales (Team 2)<br/>- Pelanggan Colocation tertaut di Incident & Support Ticket<br/>- Metrik Penjualan Closing Deal untuk KPI Marketing"]:::external
+    end
+
+    %% Flow connections
+    AXIOS --> MW_AUTH
+    MW_ESS --> SRV_SHIFT
+    MW_ESS --> SRV_ITIL
+    MW_ESS --> SRV_PERF
+    MW_ESS --> SRV_PAY
+    MW_ESS --> SRV_GA
+
+    SRV_SHIFT --> ENT_SHIFT
+    SRV_SHIFT --> ENT_ATT
+    SRV_ITIL --> ENT_ITIL
+    SRV_PERF --> ENT_EMP
+    SRV_PAY --> ENT_ATT
+    SRV_GA --> ENT_GA
+
+    %% Cross-module relationships
+    ENT_SHIFT -.->|Query Staf Jaga Hari Ini| EXT_DCOPS
+    EXT_DCOPS -.->|Alarm Telemetri Kritis| SRV_ITIL
+    SRV_ITIL -.->|Submit Approval RFC| EXT_CORE
+    SRV_PAY -.->|Submit Approval Lembur| EXT_CORE
+    SRV_PAY -.->|Posting Jurnal Akrual Beban| EXT_FIN
+    SRV_PERF -.->|Ambil Data Tiket & Deal| EXT_DCOPS
+    SRV_PERF -.->|Ambil Data Sales Closed| EXT_CRM
+    ENT_EMP -.->|Tautan user_id & Berkas Dokumen| EXT_CORE
