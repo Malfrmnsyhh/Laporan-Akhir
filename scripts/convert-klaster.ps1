@@ -1,19 +1,16 @@
-# Skrip Otomasi Konversi Catatan Bedah Klaster (Standar UPN 'Veteran' Jawa Timur)
+﻿# Skrip Otomasi Konversi Catatan Bedah Klaster (Standar UPN 'Veteran' Jawa Timur)
 # Engine: Python (python-docx + Pygments) untuk DOCX + MS Word COM Automation untuk PDF 100% Identik
 # Lokasi: scripts/convert-klaster.ps1
+
+param(
+    [string]$Target = "all"
+)
 
 $ErrorActionPreference = "Stop"
 
 $root = Resolve-Path (Join-Path $PSScriptRoot "..")
-$mdDir = Join-Path $root "00-bedah-klaster\data-center-ops\md"
-$docxDir = Join-Path $root "00-bedah-klaster\data-center-ops\docx"
-$pdfDir = Join-Path $root "00-bedah-klaster\data-center-ops\pdf"
+$bedahRoot = Join-Path $root "00-bedah-klaster"
 $pythonEngine = Join-Path $root "scripts\md_to_docx.py"
-
-New-Item -ItemType Directory -Path $docxDir -Force | Out-Null
-New-Item -ItemType Directory -Path $pdfDir -Force | Out-Null
-
-$files = Get-ChildItem -Path $mdDir -Filter "klaster-*.md" | Sort-Object Name
 
 Write-Host "==========================================================" -ForegroundColor Cyan
 Write-Host "   KONVERSI BEDAH KLASTER (UPN 'VETERAN' JAWA TIMUR)      " -ForegroundColor Cyan
@@ -21,29 +18,58 @@ Write-Host "   Engine: Python (python-docx + Pygments) + MS Word PDF  " -Foregro
 Write-Host "==========================================================" -ForegroundColor Cyan
 Write-Host ""
 
-# ── 1. Konversi Seluruh Markdown ke DOCX ──
-Write-Host "[1/2] Mengompilasi Dokumen Word (.docx)..." -ForegroundColor Yellow
+$targetDirs = @()
+if ($Target -eq "all") {
+    $subDirs = Get-ChildItem -Path $bedahRoot -Directory
+    foreach ($d in $subDirs) {
+        $mdPath = Join-Path $d.FullName "md"
+        if (Test-Path $mdPath) {
+            $targetDirs += $d.FullName
+        }
+    }
+} else {
+    $specificDir = Join-Path $bedahRoot $Target
+    if (Test-Path $specificDir) {
+        $targetDirs += $specificDir
+    } else {
+        Write-Error "Direktori target '$Target' tidak ditemukan di $bedahRoot"
+    }
+}
+
 $docxList = @()
 
-foreach ($f in $files) {
-    $base = $f.BaseName
-    $docxOut = Join-Path $docxDir "$base.docx"
-    $pdfOut = Join-Path $pdfDir "$base.pdf"
+foreach ($dir in $targetDirs) {
+    $moduleName = (Get-Item $dir).Name
+    $mdDir = Join-Path $dir "md"
+    $docxDir = Join-Path $dir "docx"
+    $pdfDir = Join-Path $dir "pdf"
 
-    try {
-        & python $pythonEngine "$($f.FullName)" -o "$docxOut"
-        if ($LASTEXITCODE -eq 0) {
-            Write-Host "    [SUKSES] DOCX: $base.docx" -ForegroundColor Green
-            $docxList += [PSCustomObject]@{
-                Docx = "$docxOut"
-                Pdf  = "$pdfOut"
-                Base = "$base"
+    New-Item -ItemType Directory -Path $docxDir -Force | Out-Null
+    New-Item -ItemType Directory -Path $pdfDir -Force | Out-Null
+
+    $files = Get-ChildItem -Path $mdDir -Filter "*.md" | Sort-Object Name
+    Write-Host "--> Memproses Modul: $moduleName ($($files.Count) berkas markdown)" -ForegroundColor Yellow
+
+    foreach ($f in $files) {
+        $base = $f.BaseName
+        $docxOut = Join-Path $docxDir "$base.docx"
+        $pdfOut = Join-Path $pdfDir "$base.pdf"
+
+        try {
+            & python $pythonEngine "$($f.FullName)" -o "$docxOut"
+            if ($LASTEXITCODE -eq 0) {
+                Write-Host "    [SUKSES] DOCX: $base.docx" -ForegroundColor Green
+                $docxList += [PSCustomObject]@{
+                    Docx = "$docxOut"
+                    Pdf  = "$pdfOut"
+                    Base = "$base"
+                }
+            } else {
+                Write-Host "    [GAGAL] DOCX: $base.docx (Exit code: $LASTEXITCODE)" -ForegroundColor Red
             }
-        } else {
-            Write-Host "    [GAGAL] DOCX: $base.docx (Exit code: $LASTEXITCODE)" -ForegroundColor Red
+        } catch {
+            Write-Host "    [ERROR] DOCX: $_" -ForegroundColor Red
         }
-    } catch {
-        Write-Host "    [ERROR] DOCX: $_" -ForegroundColor Red
     }
 }
 
@@ -88,7 +114,4 @@ try {
 Write-Host ""
 Write-Host "==========================================================" -ForegroundColor Green
 Write-Host "   KONVERSI SELESAI DENGAN SEMPURNA!                      " -ForegroundColor Green
-Write-Host "   Berkas tersimpan di:                                   " -ForegroundColor Green
-Write-Host "     - DOCX: $docxDir                                     " -ForegroundColor Green
-Write-Host "     - PDF : $pdfDir                                      " -ForegroundColor Green
 Write-Host "==========================================================" -ForegroundColor Green

@@ -1,0 +1,104 @@
+flowchart TD
+    %% Styling and layout
+    classDef client fill:#EBF8FF,stroke:#3182CE,stroke-width:2px;
+    classDef gateway fill:#FEFCBF,stroke:#D69E2E,stroke-width:2px;
+    classDef backend fill:#F0FFF4,stroke:#38A169,stroke-width:2px;
+    classDef service fill:#E6FFFA,stroke:#319795,stroke-width:2px;
+    classDef db fill:#FAF5FF,stroke:#805AD5,stroke-width:2px;
+    classDef modules fill:#FFF5F5,stroke:#E53E3E,stroke-width:2px;
+
+    subgraph CLIENT["1. Lapisan Frontend (React 18 + TypeScript + Vite)"]
+        direction TB
+        UI_AUTH["Autentikasi & Sesi<br/>- LoginPage & TwoFactorLoginPage<br/>- auth-context.tsx & tokenStorage<br/>- Multi-Org Selector (ActiveOrganization)"]:::client
+        UI_NAV["Navigasi & Akses<br/>- Sidebar.tsx (Filter visible_sections)<br/>- PermissionGuard (RBAC canAny)"]:::client
+        UI_CORE["Halaman Manajemen Core<br/>- UserListPage & RoleListPage<br/>- OrganizationStructurePage (Tree)<br/>- MasterDataPage & NumberSequenceModal<br/>- WorkflowTemplateDetailPage & MyApprovalListPage<br/>- ApiKeyListPage & AuditPage"]:::client
+        AXIOS["Centralized API Client (api-client.ts)<br/>- Authorization: Bearer {token}<br/>- X-Organization-Id: {active_org_id}<br/>- Auto-redirect pada 401 Unauthorized"]:::client
+
+        UI_AUTH --> AXIOS
+        UI_NAV --> AXIOS
+        UI_CORE --> AXIOS
+    end
+
+    subgraph GATEWAY["2. Lapisan API Gateway & Middleware Pipeline (Laravel 11)"]
+        direction TB
+        MW_AUTH["EnsureApiAuthenticated<br/>- Validasi Bearer Token (Passport Guard 'api')"]:::gateway
+        MW_ORG["SetOrganizationContext<br/>- Parse header 'X-Organization-Id'<br/>- Set request attribute 'organization_id'"]:::gateway
+        MW_RBAC["ApiPermissionMiddleware<br/>- Override Spatie Permission (Guard 'api')<br/>- Verifikasi permission string user"]:::gateway
+        MW_APIKEY["ApiKeyMiddleware<br/>- Header 'X-API-Key' + Hash Verification<br/>- Subnet CIDR IP Whitelist Guard"]:::gateway
+        MW_AUDIT["ApiAuditMiddleware & RateLimiter<br/>- Log request URI, latency, status code<br/>- Dynamic throttle policy"]:::gateway
+
+        MW_AUTH --> MW_ORG --> MW_RBAC --> MW_AUDIT
+        MW_APIKEY --> MW_AUDIT
+    end
+
+    subgraph CORE_SERVICES["3. Lapisan Core Services & Business Engines"]
+        direction TB
+        SRV_WF["WorkflowEngineService (Universal Engine v2)<br/>- submit(), approve(), reject(), cancel()<br/>- Multi-Level Approval & Quorum Voting<br/>- Graph Transition & SLA Escalation"]:::service
+        SRV_SEQ["NumberSequence Engine (cp_md_number_sequence)<br/>- NumberSequence::next(module_code)<br/>- DB Transaction & lockForUpdate()<br/>- Reset Period: Yearly / Monthly / Never"]:::service
+        SRV_AUDIT["AuditTrailService & DataChangeAuditService<br/>- Log aktivitas login, permission, data changes<br/>- Immutable audit record (cp_at_*)"]:::service
+        SRV_AUTH["TwoFactorAuthService & ApiKeyService<br/>- TOTP Secret, QR Code, Verification<br/>- API Key Hash & IP CIDR Matcher"]:::service
+        SRV_NTF["NotificationService & FileManagementService<br/>- In-App, Email, Queue, Template Engine<br/>- S3/Local Storage, Versioning, Digital Signature"]:::service
+        TRAIT_ORG["ScopesOrganization Trait<br/>- addGlobalScope('organization')<br/>- Auto-set organization_id on creating<br/>- Isolasi Multi-Tenant Transparan"]:::service
+    end
+
+    subgraph CONSUMER_MODULES["4. Konsumen Layanan: Modul Bisnis MSDC ERP"]
+        direction TB
+        MOD_DCOPS["DataCenterOps<br/>- Next Site/Rack Code<br/>- Rack Release Workflow<br/>- IoT Telemetry via API Key"]:::modules
+        MOD_CRM["CrmSales<br/>- Next SO/Contract Code<br/>- Contract Approval Workflow<br/>- Customer Master Sync"]:::modules
+        MOD_FIN["FinanceAccounting<br/>- GL Posting Rules<br/>- Invoice Approval Flow<br/>- Currency & Tax Reference"]:::modules
+        MOD_PROC["ProcurementInventory<br/>- PR/PO Quorum Approval<br/>- Good Handover Sequence<br/>- Vendor Evaluation Flow"]:::modules
+        MOD_HR["HrServiceSupport<br/>- Employee Attendance<br/>- Overtime Rate Lookup<br/>- Leave Approval Flow"]:::modules
+
+        MOD_DCOPS -.->|Panggil Layanan Core| SRV_WF
+        MOD_DCOPS -.->|Generate Kode Unik| SRV_SEQ
+        MOD_CRM -.->|Panggil Layanan Core| SRV_WF
+        MOD_CRM -.->|Generate Kode Unik| SRV_SEQ
+        MOD_FIN -.->|Panggil Layanan Core| SRV_WF
+        MOD_PROC -.->|Panggil Layanan Core| SRV_WF
+        MOD_HR -.->|Panggil Layanan Core| SRV_WF
+    end
+
+    subgraph DATABASE["5. Lapisan Basis Data MySQL (cp_* Schema)"]
+        direction TB
+        
+        subgraph DB_SECURITY["Keamanan & Organisasi"]
+            DB_USER[("users & organizations<br/>- id, email, password<br/>- tenant_code, status")]:::db
+            DB_USER_ORG[("cp_user_organization<br/>- user_id, organization_id<br/>- role, is_default")]:::db
+            DB_2FA[("cp_two_factor_auth<br/>- user_id, secret, is_enabled")]:::db
+            DB_KEY[("cp_api_key<br/>- key_prefix, key_hash<br/>- allowed_ips (CIDR), scopes")]:::db
+            DB_RBAC[("roles & permissions<br/>- name, guard_name='api'<br/>- model_has_roles/permissions")]:::db
+        end
+
+        subgraph DB_MASTER["Master Data & Penomoran"]
+            DB_SEQ[("cp_md_number_sequence<br/>- module_code (UK)<br/>- prefix, format, current_number<br/>- reset_period, last_reset_at")]:::db
+            DB_STRUCT[("cp_md_branch & department<br/>- organization_id (FK)<br/>- code, name, parent_id")]:::db
+            DB_REF[("cp_md_currency & tax<br/>- code, rate, is_active")]:::db
+        end
+
+        subgraph DB_WORKFLOW["Workflow Engine Schema"]
+            DB_WF_TPL[("cp_wf_template & version<br/>- code, name, is_active")]:::db
+            DB_WF_LVL[("cp_wf_level & matrix<br/>- sequence, role_id, min_approval_count")]:::db
+            DB_WF_INST[("cp_wf_instance & instance_level<br/>- module_code, document_type, doc_id<br/>- status: pending/approved/rejected")]:::db
+            DB_WF_VOTE[("cp_wf_instance_level_vote<br/>- instance_level_id, user_id, decision")]:::db
+            DB_WF_HIST[("cp_wf_history<br/>- instance_id, action, actor_id, comments")]:::db
+        end
+
+        subgraph DB_AUDIT["Audit & Notifikasi"]
+            DB_AT[("cp_at_login & cp_at_data_change<br/>- user_id, action, old/new_values<br/>- ip_address, user_agent")]:::db
+            DB_API_LOG[("cp_at_api_request<br/>- route, method, status_code, latency")]:::db
+            DB_NTF[("cp_ntf_queue & cp_ntf_in_app<br/>- channel, recipient, body, status")]:::db
+        end
+
+        DB_USER --> DB_USER_ORG
+        DB_USER --> DB_2FA
+        DB_USER --> DB_KEY
+        DB_USER --> DB_RBAC
+        DB_WF_TPL --> DB_WF_LVL --> DB_WF_INST --> DB_WF_VOTE
+        DB_WF_INST --> DB_WF_HIST
+    end
+
+    CLIENT -->|HTTP REST + Bearer Token + X-Organization-Id| GATEWAY
+    GATEWAY --> CORE_SERVICES
+    CORE_SERVICES --> TRAIT_ORG
+    TRAIT_ORG --> DATABASE
+    CONSUMER_MODULES -->|ScopesOrganization Auto-Filter| DATABASE
