@@ -1,0 +1,102 @@
+flowchart TD
+    %% Styling and layout
+    classDef client fill:#EBF8FF,stroke:#3182CE,stroke-width:2px;
+    classDef backend fill:#F0FFF4,stroke:#38A169,stroke-width:2px;
+    classDef db fill:#FAF5FF,stroke:#805AD5,stroke-width:2px;
+    classDef crm fill:#FFF5F5,stroke:#E53E3E,stroke-width:2px;
+    classDef fin fill:#FEFCBF,stroke:#B7791F,stroke-width:2px;
+    classDef guard fill:#FFFFF0,stroke:#D69E2E,stroke-width:2px;
+
+    subgraph CLIENT["1. Lapisan Frontend (React + Vite + TanStack Query)"]
+        direction TB
+        UI_Dev["Device Inventory (/dc/devices)<br/>- DeviceListPage & Detail<br/>- Asset Tag, U-Slot, Power Watt"]:::client
+        UI_Port["Network Port (/dc/network-ports)<br/>- NetworkPortListPage<br/>- MAC, IP, Speed, VLAN Bind"]:::client
+        UI_Cross["Cross-Connect (/dc/cross-connects)<br/>- CrossConnectListPage & Modal<br/>- Inter-Rack & MMR Cable Link"]:::client
+        UI_Otb["OTB Inventory (/dc/otbs)<br/>- OtbListPage & OtbDetailPage<br/>- Fiber Core Grid (1..N Ports)"]:::client
+        UI_Ipam["IPAM Portal (/dc/ipam)<br/>- IpamListPage & SubnetDetail<br/>- CIDR Pool & Address Grid"]:::client
+        HOOKS["TanStack React Query Hooks<br/>- useDevices, useNetworkPorts<br/>- useCrossConnects, useOtbs, useIpam"]:::client
+
+        UI_Dev --> HOOKS
+        UI_Port --> HOOKS
+        UI_Cross --> HOOKS
+        UI_Otb --> HOOKS
+        UI_Ipam --> HOOKS
+    end
+
+    subgraph BACKEND["2. Lapisan Backend (Laravel 11 Modular DataCenterOps)"]
+        direction TB
+        ROUTE["Routes /api/v1/data-center-ops<br/>- devices, network-ports, vlans<br/>- cross-connects, otbs, ipam"]:::backend
+
+        subgraph CONTROLLERS["Controllers Layer"]
+            CTRL_Dev["DeviceController<br/>- CRUD + Slot Free Check"]:::backend
+            CTRL_Net["NetworkController<br/>- portAllIndex, portStore, assignVlan<br/>- portUpdate, portDestroy, portConnect"]:::backend
+            CTRL_Cross["CrossConnectController<br/>- CRUD, search filters, setStatus"]:::backend
+            CTRL_Otb["OtbController<br/>- CRUD OTB, ports, allocatePort, releasePort"]:::backend
+            CTRL_Ipam["IpamController<br/>- subnetStore, generateAddresses<br/>- allocate, release, subnetDestroy"]:::backend
+        end
+
+        subgraph SERVICES["Domain Services & Engine Rules"]
+            SRV_Dev["DeviceService<br/>- assertSlotFree() (Anti-tumpuk U)<br/>- Sync power_watt & U-range"]:::guard
+            SRV_Net["NetworkService<br/>- Scoped Uniqueness (device_id, port_name)<br/>- MAC & IP Validation"]:::guard
+            SRV_Cross["CrossConnectService<br/>- NumberSequence::next('cross_connect')<br/>- OTB Port & Tenant Contract Binding"]:::guard
+            SRV_Otb["OtbService<br/>- NumberSequence::next('otb')<br/>- Auto-generate N dc_otb_port records"]:::guard
+            SRV_Ipam["IpamService<br/>- ip2long() CIDR host generation<br/>- Subnet Delete Guard (Error 409)"]:::guard
+        end
+
+        ROUTE --> CTRL_Dev & CTRL_Net & CTRL_Cross & CTRL_Otb & CTRL_Ipam
+        CTRL_Dev --> SRV_Dev
+        CTRL_Net --> SRV_Net
+        CTRL_Cross --> SRV_Cross
+        CTRL_Otb --> SRV_Otb
+        CTRL_Ipam --> SRV_Ipam
+    end
+
+    subgraph DATABASE["3. Lapisan Database & Integrasi Lintas Modul (MySQL)"]
+        direction TB
+
+        subgraph ACTIVE_NET["Perangkat Aktif & Port Fisik"]
+            DB_Dev[("dc_device<br/>- device_code (UK)<br/>- rack_id, rack_position_u<br/>- power_watt, fixed_asset_id")]:::db
+            DB_Port[("dc_network_port<br/>- device_id (FK)<br/>- port_name (UK scoped)<br/>- mac_address, ip_address")]:::db
+            DB_Vlan[("dc_vlan<br/>- vlan_number, site_id")]:::db
+
+            DB_Dev -->|"1 : N (cascade)"| DB_Port
+            DB_Port -.->|"vlan_id"| DB_Vlan
+            DB_Port -.->|"connected_to_port_id (Patch)"| DB_Port
+        end
+
+        subgraph PASSIVE_NET["Pengkabelan Pasif & Terminasi Optik"]
+            DB_Cross[("dc_cross_connect<br/>- tag_number (UK)<br/>- port_a_id, port_b_id<br/>- cable_type, status")]:::db
+            DB_Otb[("dc_otb<br/>- tag_number (UK)<br/>- port_count (e.g. 48)")]:::db
+            DB_OtbPort[("dc_otb_port<br/>- otb_id (FK)<br/>- port_number (1..N)<br/>- status: avail/alloc/damaged")]:::db
+
+            DB_Otb -->|"1 : N (cascade)"| DB_OtbPort
+            DB_Cross -.->|"destination_otb_port_id"| DB_OtbPort
+            DB_Cross -.->|"port_a_id / port_b_id"| DB_Port
+        end
+
+        subgraph IP_POOL["Manajemen IP (IPAM)"]
+            DB_Subnet[("dc_ip_subnet<br/>- cidr (e.g. /24)<br/>- ip_version, gateway")]:::db
+            DB_Ip[("dc_ip_address<br/>- subnet_id (FK)<br/>- ip_address (UK)<br/>- status: avail/alloc/blocked")]:::db
+
+            DB_Subnet -->|"1 : N (cascade)"| DB_Ip
+            DB_Ip -.->|"device_id"| DB_Dev
+            DB_Port -.->|"ip_address"| DB_Ip
+        end
+
+        subgraph COMM_LINKS["Integrasi Komersial & Finansial ERP"]
+            CRM_Cust[("crm_customer<br/>- id, company_name")]:::crm
+            CRM_Contract[("crm_contract<br/>- id, contract_number")]:::crm
+            CRM_Item[("crm_contract_service<br/>- Baris Layanan Terjual")]:::crm
+            FIN_Asset[("fin_fa_asset (Team 4)<br/>- Depresiasi & Nilai Buku")]:::fin
+
+            CRM_Cust --> CRM_Contract --> CRM_Item
+            CRM_Contract -.->|"contract_id"| DB_Dev
+            CRM_Contract -.->|"contract_id"| DB_Cross
+            CRM_Item -.->|"contract_service_id"| DB_OtbPort
+            CRM_Item -.->|"contract_service_id"| DB_Ip
+            FIN_Asset -.->|"fixed_asset_id"| DB_Dev
+        end
+    end
+
+    CLIENT -->|"HTTP JSON REST API"| BACKEND
+    SERVICES -->|"Eloquent ORM Queries & Transactions"| DATABASE
