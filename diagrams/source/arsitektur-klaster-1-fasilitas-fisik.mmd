@@ -1,0 +1,76 @@
+flowchart TD
+    %% Styling and layout
+    classDef client fill:#EBF8FF,stroke:#3182CE,stroke-width:2px;
+    classDef backend fill:#F0FFF4,stroke:#38A169,stroke-width:2px;
+    classDef db fill:#FAF5FF,stroke:#805AD5,stroke-width:2px;
+    classDef crm fill:#FFF5F5,stroke:#E53E3E,stroke-width:2px;
+    classDef guard fill:#FFFFF0,stroke:#D69E2E,stroke-width:2px;
+
+    subgraph CLIENT["1. Lapisan Frontend (React + Vite + TanStack Query)"]
+        direction TB
+        UI_Site["Site Manager (/dc/sites)<br/>- SiteListPage & SiteDetailPage<br/>- Dependents Card (SO/Contract List)"]:::client
+        UI_Room["Room Manager (/dc/rooms)<br/>- RoomListPage & RoomFormModal<br/>- Filter by Site & Room Type"]:::client
+        UI_Rack["Rack Manager & Visual 42U (/dc/racks)<br/>- RackListPage (Used U & Watt)<br/>- RackVisualPicker (Interactive 42U)"]:::client
+        HOOK_API["React Query Hooks & API Client<br/>- useSites(), useRooms(), useRacks()<br/>- useRackOccupancy(), useAllocateRackSlots()"]:::client
+
+        UI_Site --> HOOK_API
+        UI_Room --> HOOK_API
+        UI_Rack --> HOOK_API
+    end
+
+    subgraph BACKEND["2. Lapisan Backend (Laravel 11 Modular DataCenterOps)"]
+        direction TB
+        ROUTE["Routes /api/v1/data-center-ops<br/>- sites, rooms, racks<br/>- racks/{id}/occupancy<br/>- racks/{id}/allocate<br/>- racks/allocations/{id}/request-release"]:::backend
+        
+        subgraph CONTROLLERS["Controllers Layer"]
+            CTRL_Site["SiteController<br/>- index, show, store, update, destroy<br/>- storeRoom, updateRoom, deleteRoom"]:::backend
+            CTRL_Room["RoomController<br/>- index (standalone paginated + racks_count)"]:::backend
+            CTRL_Rack["RackController<br/>- index, show, allocate, release<br/>- occupancy (slot map 1..42)<br/>- requestRelease & requestMove (Workflow)"]:::backend
+        end
+
+        subgraph SERVICES["Domain Services & Business Guards"]
+            SRV_Site["SiteService<br/>- getDependents() (audit SO/Contracts)<br/>- deleteSite() (Delete Guard: Error 409)<br/>- NumberSequence::next('site')"]:::guard
+            SRV_Rack["RackService<br/>- occupancyMap() (1..42 U grid)<br/>- allocate() (Pessimistic lock: lockForUpdate)<br/>- utilization() (U & Watt aggregated)"]:::guard
+            SRV_Workflow["WorkflowEngineService<br/>- template: rack-action-approval-v1<br/>- Two-man rule approval for capacity release"]:::guard
+        end
+
+        ROUTE --> CTRL_Site
+        ROUTE --> CTRL_Room
+        ROUTE --> CTRL_Rack
+        CTRL_Site --> SRV_Site
+        CTRL_Room --> SRV_Site
+        CTRL_Rack --> SRV_Rack
+        CTRL_Rack --> SRV_Workflow
+    end
+
+    subgraph DATABASE["3. Lapisan Database & Relasi Lintas Modul (MySQL)"]
+        direction TB
+        
+        subgraph HIERARCHY["Hirarki Fasilitas Fisik"]
+            DB_Site[("dc_site<br/>- site_code (UK)<br/>- total_power_capacity_kw<br/>- status: active/maint/decom")]:::db
+            DB_Room[("dc_site_room<br/>- site_id (FK)<br/>- room_code (UK scoped)<br/>- room_type: server/network/ups")]:::db
+            DB_Rack[("dc_rack<br/>- site_room_id (FK)<br/>- rack_code (UK scoped)<br/>- total_u (default 42)<br/>- power_capacity_watt")]:::db
+            DB_Alloc[("dc_rack_allocation<br/>- rack_id (FK)<br/>- start_u, end_u<br/>- status: active/reserved/released")]:::db
+            DB_Device[("dc_device<br/>- rack_id, site_room_id, site_id<br/>- rack_position_u, rack_position_u_end<br/>- power_watt, u_height")]:::db
+
+            DB_Site -->|"1 : N (cascade)"| DB_Room
+            DB_Room -->|"1 : N (restrict)"| DB_Rack
+            DB_Rack -->|"1 : N (cascade)"| DB_Alloc
+            DB_Rack -->|"1 : N"| DB_Device
+        end
+
+        subgraph CRM_INTEGRATION["Integrasi Komersial (Team 2 CRM & Sales)"]
+            CRM_Cust[("crm_customer<br/>- id, company_name")]:::crm
+            CRM_SO[("crm_sales_order<br/>- id, so_number<br/>- site_id (FK)")]:::crm
+            CRM_Contract[("crm_contract<br/>- id, contract_number<br/>- site_id (FK)")]:::crm
+
+            CRM_Cust -->|"1 : N"| CRM_SO
+            CRM_Cust -->|"1 : N"| CRM_Contract
+            CRM_SO -.->|"Reservasi Tahap Pra-Kontrak"| DB_Alloc
+            CRM_Contract -->|"Alokasi Kontrak Resmi"| DB_Alloc
+            CRM_Contract -.->|"Anchor Customer 360"| DB_Device
+        end
+    end
+
+    CLIENT -->|HTTP JSON / REST API| BACKEND
+    SERVICES -->|Eloquent ORM Queries & Transactions| DATABASE
