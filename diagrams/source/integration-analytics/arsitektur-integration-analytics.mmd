@@ -1,0 +1,108 @@
+flowchart TD
+    %% Styling and layout
+    classDef client fill:#EBF8FF,stroke:#3182CE,stroke-width:2px;
+    classDef gateway fill:#FEFCBF,stroke:#D69E2E,stroke-width:2px;
+    classDef service fill:#E6FFFA,stroke:#319795,stroke-width:2px;
+    classDef analytics fill:#EBF4FF,stroke:#4C51BF,stroke-width:2px;
+    classDef modules fill:#FFF5F5,stroke:#E53E3E,stroke-width:2px;
+    classDef core fill:#EDF2F7,stroke:#4A5568,stroke-width:2px;
+    classDef db fill:#FAF5FF,stroke:#805AD5,stroke-width:2px;
+
+    subgraph CLIENT_LAYER["1. Lapisan Klien, Eksekutif & Konsumen Eksternal"]
+        direction TB
+        EXEC_WEB["Executive BI Dashboard Web<br/>- Widget SLA, MTTR, MTBF, CSAT<br/>- Grafik Tren Historis Data Warehouse<br/>- Hasil Prediksi Regresi Linear R2"]:::client
+        EXEC_MOB["Aplikasi Mobile Executive<br/>- /me/executive-dashboard/action-summary<br/>- Indikator Parsial Tahan Gangguan<br/>- /me/executive-dashboard/summary"]:::client
+        EXT_SUB["Subscriber & Pihak Ketiga<br/>- Webhook Consumers (HTTP Postback)<br/>- Payment Gateway (Midtrans)<br/>- Messaging API (WhatsApp Fonnte)<br/>- External LLM / OpenAI API"]:::client
+    end
+
+    subgraph GATEWAY_LAYER["2. Lapisan API Gateway, Otorisasi & Penyaring Konteks"]
+        direction TB
+        MW_AUTH["Passport Auth Guard 'api'<br/>- Validasi Bearer Token (core.active)"]:::gateway
+        MW_ORG["SetOrganizationContext / mobile.organization<br/>- Context Header X-Organization-Id<br/>- Isolasi Multi-Tenant Organisasi Aktif"]:::gateway
+        MW_RBAC["ApiPermissionMiddleware<br/>- permission:executive-dashboard.view<br/>- permission:event.manage, connector.manage<br/>- permission:report.manage, ai-prediction.manage"]:::gateway
+        MW_THROTTLE["Rate Limiter & Throttle Guard<br/>- throttle:60,1 (Proteksi Endpoint Eksekutif)"]:::gateway
+
+        MW_AUTH --> MW_ORG --> MW_RBAC --> MW_THROTTLE
+    end
+
+    subgraph ORCHESTRATION_LAYER["3. Lapisan Layanan Orkestrasi & Mesin Analitik (IntegrationAnalytics)"]
+        direction TB
+        
+        subgraph BI_SERVICES["Executive BI & Action Summary Engine"]
+            SRV_EXEC["ExecutiveDashboardService<br/>- slaCompliance: % tiket selesai tepat waktu<br/>- mttrHours: Rata-rata durasi penyelesaian<br/>- mtbfHours: Jarak antar kegagalan beruntun<br/>- ticketCounts, csat, engineerProductivity"]:::service
+            SRV_MOB["MobileExecutiveDashboardService<br/>- Organization-Scoped Multi-Tenant Queries<br/>- Fault-Tolerant Try-Catch Resolver Isolation"]:::service
+            CTRL_ACT["ExecutiveActionSummaryController<br/>- Agregasi 4 Indikator Eksekutif Lintas Modul<br/>- Evaluasi Izin Granuler (available/forbidden/partial)"]:::service
+        end
+
+        subgraph EVENT_CONNECTOR["Event Bus & Integration Connectors"]
+            SRV_BUS["EventBusService<br/>- publish(eventType, sourceModule, payload)<br/>- Persistensi Log Kejadian Global<br/>- Wildcard Matching ('hr_incident.*')"]:::service
+            SRV_CONN["IntegrationConnectorService<br/>- Registry Konektor Pihak Ketiga<br/>- callOutbound: Eksekusi HTTP Terpantau<br/>- Proteksi Kredensial via Server Environment"]:::service
+        end
+
+        subgraph DW_PREDICTION["Data Warehouse, Prediksi Statistik & AI"]
+            SRV_DW["DataWarehouseService<br/>- generateDailySnapshot: ETL Metrik Harian<br/>- metricHistory: Time-Series Data Tren"]:::analytics
+            SRV_PRED["PredictionService<br/>- Least-Squares Linear Regression (y = a + bx)<br/>- Kalkulasi R2 (Koefisien Determinasi Nyata)<br/>- Moving Average & Evaluasi Akurasi Pasca-Fakta"]:::analytics
+            SRV_AI["AiAssistantService<br/>- OpenAI Chat Completion Proxy<br/>- Token Accounting & Sesi Percakapan"]:::analytics
+        end
+
+        subgraph AUDIT_MAINT["Audit Analytics & Database Maintenance"]
+            SRV_AUDIT["AuditAnalyticsService<br/>- detectExcessiveFailedLogins (Brute-Force Guard)<br/>- detectUnusualLoginHours (Anomali Jam Kerja)<br/>- Review & Triage Workflow (open/reviewed/dismissed)"]:::analytics
+            SRV_MAINT["DatabaseMaintenanceService<br/>- Live Storage Audit via information_schema<br/>- Scanning Kandidat Cleanup Tabel Log/Audit"]:::analytics
+            SRV_REP["ReportingEngineService<br/>- Whitelisted Report Catalog (Anti SQL-Injection)<br/>- cross_team_ticket_summary & contract_expiry_forecast"]:::service
+        end
+    end
+
+    subgraph UPSTREAM_MODULES["4. Sumber Data Domain Bisnis MSDC ERP (Upstream Modules)"]
+        direction TB
+        MOD_DC["DataCenterOps<br/>- Tiket DC & Remote Hands (dc_ticket)<br/>- Alarm Kritis Operasional (dc_alarm)<br/>- Perangkat & Site untuk MTBF"]:::modules
+        MOD_CRM["CrmSales<br/>- Kontrak Pelanggan (crm_contract)<br/>- Kontrak Expiring dalam 30 Hari<br/>- Customer Organization Mapping"]:::modules
+        MOD_FIN["FinanceAccounting<br/>- Faktur Tagihan (ar_invoice)<br/>- Rekap Piutang Overdue (FinanceHomeQuery)<br/>- Agregat Penjualan Harian"]:::modules
+        MOD_HR["HrServiceSupport<br/>- ITIL Incidents (opened/resolved/sla_due)<br/>- Support Tickets & Rating CSAT Pelanggan<br/>- Produktivitas Penyelesaian Engineer"]:::modules
+        MOD_PROC["ProcurementInventory<br/>- Status Pengadaan & Purchase Order<br/>- Event Publishing Penerimaan Barang"]:::modules
+
+        MOD_DC -.->|Metrik Tiket & Alarm| SRV_EXEC
+        MOD_CRM -.->|Data Kontrak & Renewal| CTRL_ACT
+        MOD_FIN -.->|Faktur & Status Overdue| CTRL_ACT
+        MOD_HR -.->|Insiden, CSAT & SLA| SRV_EXEC
+        MOD_PROC -.->|Event Domain Bisnis| SRV_BUS
+        MOD_DC -.->|Daily Snapshot Fact| SRV_DW
+        MOD_FIN -.->|Daily Snapshot Fact| SRV_DW
+        MOD_HR -.->|Daily Snapshot Fact| SRV_DW
+    end
+
+    subgraph CORE_KERNEL["5. Fondasi Terpusat CorePlatform (Kernel Reused)"]
+        direction TB
+        CP_WIDGET["DashboardService<br/>- Registrasi cp_dashboard_widget<br/>- Integrasi Tampilan Widget Eksekutif"]:::core
+        CP_WEBHOOK["WebhookService<br/>- dispatch(eventType, payload)<br/>- Pengiriman HTTP Postback & Retry Queue"]:::core
+        CP_EXPORT["ReportExportService<br/>- Async Export CSV, XLSX, PDF<br/>- Job Tracking cp_report_export_job"]:::core
+        CP_AUDIT["AuditLogin Entity<br/>- cp_at_login (Sumber Deteksi Anomali)"]:::core
+
+        SRV_EXEC -->|Registrasi Widget| CP_WIDGET
+        SRV_BUS -->|Forward Subscription| CP_WEBHOOK
+        SRV_REP -->|Export Dokumen| CP_EXPORT
+        SRV_AUDIT -->|Query Login Audit| CP_AUDIT
+    end
+
+    subgraph DATABASE_LAYER["6. Skema Basis Data Terisolasi MySQL (ix_* Schema)"]
+        direction TB
+        DB_EVENT[("ix_event & ix_event_subscription<br/>- event_type, source_module, payload<br/>- occurred_at, webhook_subscription_id")]:::db
+        DB_CONN[("ix_integration_connector & ix_integration_log<br/>- connector_code, connector_type, status<br/>- direction, status_code, success, error_message")]:::db
+        DB_DW[("ix_dw_fact_snapshot<br/>- snapshot_date, module, metric_name<br/>- dimension_key, dimension_value, value")]:::db
+        DB_PRED[("ix_prediction_model & ix_prediction_result<br/>- model_code, model_type, target_metric<br/>- predicted_for_date, predicted_value, confidence_pct, actual_value")]:::db
+        DB_AUDIT[("ix_audit_anomaly<br/>- anomaly_type, user_id, severity, status<br/>- description, detected_at, review_notes")]:::db
+        DB_REP[("ix_report_definition & ix_report_run_log<br/>- report_code, source_module, parameters_used<br/>- row_count, export_job_id, run_at")]:::db
+        DB_AI[("ix_ai_conversation & ix_ai_message<br/>- user_id, title, role, content, tokens_used")]:::db
+        DB_MAINT[("ix_db_maintenance_log<br/>- task_type, table_name, details, status")]:::db
+
+        SRV_BUS --> DB_EVENT
+        SRV_CONN --> DB_CONN
+        SRV_DW --> DB_DW
+        SRV_PRED --> DB_PRED
+        SRV_AUDIT --> DB_AUDIT
+        SRV_REP --> DB_REP
+        SRV_AI --> DB_AI
+        SRV_MAINT --> DB_MAINT
+    end
+
+    CLIENT_LAYER -->|REST API Request| GATEWAY_LAYER
+    GATEWAY_LAYER --> ORCHESTRATION_LAYER
