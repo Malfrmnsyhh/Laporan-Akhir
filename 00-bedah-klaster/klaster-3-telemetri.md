@@ -134,7 +134,7 @@ $$
 
 Berikut adalah visualisasi alur integrasi Klaster 3 (Telemetri & Pengawasan):
 
-![Arsitektur Klaster 3 Telemetri & Pengawasan](../../diagrams/rendered/arsitektur-klaster-3-telemetri.png)
+![Arsitektur Klaster 3 Telemetri & Pengawasan](../diagrams/rendered/arsitektur-klaster-3-telemetri.png)
 
 *Sumber diagram mentah*: `diagrams/source/arsitektur-klaster-3-telemetri.mmd`
 

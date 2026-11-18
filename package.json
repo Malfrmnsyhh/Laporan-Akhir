@@ -4,6 +4,7 @@
   "description": "Workspace Laporan Akhir Magang & PKL - MSDC ERP",
   "scripts": {
     "render-diagrams": "python scripts/render_diagrams.py",
+    "convert:bedah": "powershell -ExecutionPolicy Bypass -File 00-bedah-klaster/convert.ps1",
     "build:magang": "powershell -ExecutionPolicy Bypass -File 01-laporan-magang/laporan.ps1 build",
     "build:pkl": "powershell -ExecutionPolicy Bypass -File 02-laporan-pkl/laporan.ps1 build",
     "build:all": "npm run build:magang && npm run build:pkl"

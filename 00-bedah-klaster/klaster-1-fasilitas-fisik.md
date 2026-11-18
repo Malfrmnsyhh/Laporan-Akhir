@@ -1,6 +1,9 @@
 # BEDAH KLASTER 1: HIRARKI FASILITAS FISIK GEDUNG DATA CENTER
+
 ## Modul: Data Center Operations (DC Ops) — MSDC ERP
+
 **Target Sub-Menu**:
+
 1. **Site Manager** (`/dc/sites`)
 2. **Room Manager** (`/dc/rooms`)
 3. **Rack Manager & Visual 42U** (`/dc/racks`)
@@ -9,13 +12,16 @@
 
 ## 1. RINGKASAN EKSEKUTIF & FILOSOFI BISNIS
 
-Dalam industri *Colocation Data Center* dan *Managed Services*, aset komersial yang dijual kepada pelanggan bukanlah sekadar "koneksi internet", melainkan **ruang fisik (*floor space & rack space*)**, **keandalan daya listrik (*power capacity*)**, dan **suhu terkontrol (*cooling SLA*)**. 
+Dalam industri *Colocation Data Center* dan *Managed Services*, aset komersial yang dijual kepada pelanggan bukanlah sekadar "koneksi internet", melainkan **ruang fisik (*floor space & rack space*)**, **keandalan daya listrik (*power capacity*)**, dan **suhu terkontrol (*cooling SLA*)**.
 
 Untuk mengelola ribuan server pelanggan secara akurat tanpa kekacauan penempatan, arsitektur sistem informasi Data Center Infrastructure Management (DCIM) wajib menerapkan **pemodelan spasial bertingkat (*hierarchical spatial containment*)**:
 
-$$\text{Site (Gedung/Kampus DC)} \longrightarrow \text{Room (Ruang/Zona/Lantai)} \longrightarrow \text{Rack (42U Chassis)} \longrightarrow \text{Slot U (Unit Fisik 1..42)}$$
+$$
+\text{Site (Gedung/Kampus DC)} \longrightarrow \text{Room (Ruang/Zona/Lantai)} \longrightarrow \text{Rack (42U Chassis)} \longrightarrow \text{Slot U (Unit Fisik 1..42)}
+$$
 
 ### 1.1. Filosofi Bisnis Per Sub-Menu
+
 1. **Site Manager (`/dc/sites`) — Tingkat Makro Gedung**:
    - Merepresentasikan fasilitas fisik gedung data center (misal: *DC-Surabaya-01*, *DC-Jakarta-Gedung Cyber*).
    - Menyimpan parameter kapasitas makro: total kapasitas daya listrik fasilitas (`total_power_capacity_kw`), batas total agregat *bandwidth* (`total_bandwidth_mbps`), status operasional gedung (`active`, `maintenance`, `decommissioned`), serta penanda *Cost Center* akuntansi.
@@ -56,7 +62,9 @@ Alur pemrosesan data pada Klaster 1 mengalir secara modular dari komponen antarm
 ```
 
 ### 2.1. Trace 1: Audit Dependensi Lintas Modul pada Detail Site
+
 Saat pengguna membuka halaman **Detail Site** (`/dc/sites/:id`):
+
 1. **Frontend**: Komponen `SiteDetailPage.tsx` memanggil *hook* `useSite(id)`.
 2. **API Request**: Axios mengirimkan request `GET /api/v1/data-center-ops/sites/{id}`.
 3. **Controller**: `SiteController::show(Site $site)` dieksekusi. Controller melakukan *eager-load* relasi `rooms` dan memanggil `SiteService::getDependents($site)`.
@@ -88,7 +96,9 @@ Saat pengguna membuka halaman **Detail Site** (`/dc/sites/:id`):
 5. **Respons & UI Guard**: Frontend menerima objek `dependents`. Jika `can_delete === false`, tombol hapus dinonaktifkan (*disabled*) dan kartu **Dependents Card** menampilkan daftar kontrak, nomor SO, dan nama perusahaan pelanggan yang wajib diselesaikan terlebih dahulu.
 
 ### 2.2. Trace 2: Standalone Room Index dengan Eager Loading
+
 Untuk mencegah inefisiensi query $N+1$ pada daftar ruangan:
+
 1. **Frontend**: `RoomListPage.tsx` memanggil `useRooms({ site_id, room_type, search, page, per_page })`.
 2. **Endpoint**: `GET /api/v1/data-center-ops/rooms`.
 3. **Controller (`RoomController::index`)**:
@@ -105,10 +115,13 @@ Untuk mencegah inefisiensi query $N+1$ pada daftar ruangan:
        ->orderBy('room_code')
        ->paginate($request->integer('per_page', 25));
    ```
+
    *Eager loading* `with('site')` dan `withCount('racks')` memastikan informasi site induk dan jumlah rak dalam ruangan diperoleh hanya dalam 2 query SQL terindeks, terlepas dari berapa pun jumlah baris yang ditampilkan.
 
 ### 2.3. Trace 3: Visual 42U Occupancy Map Grid
+
 Peta visual rak pada `RackVisualPicker.tsx` bekerja melalui pemetaan unit slot:
+
 1. **Frontend**: Memanggil `useRackOccupancy(rackId)` yang menembak `GET /api/v1/data-center-ops/racks/{id}/occupancy`.
 2. **Controller & Service (`RackService::occupancyMap`)**:
    - Mengambil seluruh alokasi ruang pelanggan yang berstatus `active` atau `reserved`:
@@ -152,15 +165,19 @@ Peta visual rak pada `RackVisualPicker.tsx` bekerja melalui pemetaan unit slot:
 ## 3. LOGIKA PROTEKSI & INTEGRITAS DATA (BUSINESS GUARDS)
 
 ### 3.1. Keunikan Bertingkat (*Scoped Uniqueness*)
+
 Sistem menerapkan aturan *database constraint* yang unik untuk mencerminkan realitas operasional data center:
+
 1. **`site_code`**: Unik per organisasi (*scoped to organization*), otomatis digenerasi oleh sistem nomor urut terpusat `NumberSequence::next('site')` (misal: `SITE-2026-0001`).
 2. **`room_code`**: Unik **per Site** (`UNIQUE KEY ('site_id', 'room_code')`). Hal ini memungkinkan dua site berbeda sama-sama memiliki ruangan bernama `R-SERVER-01` tanpa memicu *integrity constraint violation*.
 3. **`rack_code`**: Unik **per Room** (`UNIQUE KEY ('site_room_id', 'rack_code')`). Kode rak seperti `R01`, `R02`, `R03` adalah konvensi penomoran baris rak lokal di setiap ruangan. Dengan skema ini, teknisi di Ruang A dan Ruang B dapat sama-sama memiliki rak `R01`.
 
 ### 3.2. Pencegahan Tumpang Tindih Slot (*Overlap Prevention & Pessimistic Lock*)
+
 Saat staf melakukan reservasi ruang rak melalui `RackService::allocate()`, sistem wajib menjamin tidak ada dua transaksi yang memesan rentang U yang saling bersinggungan.
 
 Sistem menerapkan penguncian pesimis (*pessimistic locking*) di dalam transaksi database:
+
 ```php
 return DB::transaction(function () use ($rack, $data, $startU, $endU) {
     $overlap = $rack->allocations()
@@ -177,13 +194,16 @@ return DB::transaction(function () use ($rack, $data, $startU, $endU) {
     return RackAllocation::create([...]);
 });
 ```
+
 > [!IMPORTANT]
 > Klausul `where('start_u', '<=', $endU)->where('end_u', '>=', $startU)` adalah formula matematis standar deteksi irisan dua interval tertutup $[A_1, A_2] \cap [B_1, B_2] \neq \emptyset$. Ditambah dengan `lockForUpdate()`, sistem kebal terhadap *race conditions* saat dua Sales Order diajukan pada detik yang sama.
 
 ### 3.3. Mekanisme Persetujuan Bertingkat (*Two-Man Rule Workflow Engine*)
+
 Pelepasan kapasitas rak (*release*) atau pemindahan alokasi rak (*move*) tidak boleh dilakukan secara sepihak oleh teknisi lapangan karena menyangkut hak komersial dan penagihan pelanggan (*billing*).
 
 Modul mengintegrasikan `WorkflowEngineService`:
+
 1. Teknisi mengajukan pelepasan via `RackController::requestRelease()`.
 2. Controller tidak langsung mengubah status, melainkan mendaftarkan tiket persetujuan:
    ```php
@@ -204,7 +224,7 @@ Modul mengintegrasikan `WorkflowEngineService`:
 
 Diagram berikut memetakan relasi hierarki fisik, integrasi modul CRM/Sales, dan alur fullstack data center ops:
 
-![Arsitektur Klaster 1: Hirarki Fasilitas Fisik](../../diagrams/rendered/arsitektur-klaster-1-fasilitas-fisik.png)
+![Arsitektur Klaster 1: Hirarki Fasilitas Fisik](../diagrams/rendered/arsitektur-klaster-1-fasilitas-fisik.png)
 
 *Sumber diagram mentah*: `diagrams/source/arsitektur-klaster-1-fasilitas-fisik.mmd`
 
@@ -215,21 +235,31 @@ Diagram berikut memetakan relasi hierarki fisik, integrasi modul CRM/Sales, dan 
 Berikut adalah 5 pertanyaan kritis yang sering diajukan oleh dosen penguji atau pembimbing lapangan saat sidang tugas akhir / magang beserta formula jawaban ilmiahnya:
 
 ### Q1: Mengapa penomoran kode rak (`rack_code`) tidak dibuat unik secara global di seluruh sistem, melainkan hanya unik per ruangan (`site_room_id`)?
+
 **Jawaban Mahasiswa**:
+
 > "Dalam standar industri data center fisik (seperti TIA-942 dan BICSI-002), penamaan lemari rak dirancang berdasarkan tata letak baris (*aisle grid*) di dalam ruangan tertentu, misalnya baris `A01-A10` di Server Room 1. Apabila data center memiliki 5 gedung atau 10 ruangan berbeda, sangat lumrah setiap ruangan memiliki lemari rak bernama `R01` atau `Rack-A01`. Jika kami memaksakan *unique constraint* secara global pada kolom `rack_code`, maka di ruangan kedua staf terpaksa menamai rak dengan nama aneh yang tidak sesuai dengan label fisik di lapangan. Oleh karena itu, integritas database dirancang menggunakan *composite unique key* pada level `['site_room_id', 'rack_code']`. Untuk membedakannya di antarmuka sistem, kami menggunakan *eager loading* yang selalu merender hierarki lengkap: `Site Code -> Room Name -> Rack Code`."
 
 ### Q2: Bagaimana sistem Anda menangani *concurrency* saat ada dua staf sales atau staf DC yang mencoba mengalokasikan slot U yang sama pada detik yang bersamaan?
+
 **Jawaban Mahasiswa**:
+
 > "Kami menerapkan mekanisme *Pessimistic Locking* menggunakan klausa `lockForUpdate()` di dalam blok `DB::transaction()` pada `RackService::allocate()`. Sebelum sebuah *record* alokasi baru disimpan, sistem mengeksekusi query pengecekan irisan interval matematis `start_u <= end_u_input AND end_u >= start_u_input` dengan mengunci baris-baris data terkait di tabel `dc_rack_allocation`. Transaksi kedua yang mencoba membaca atau menulis pada rentang rak yang sama akan dipaksa menunggu (*wait lock*) hingga transaksi pertama selesai (*commit* atau *rollback*). Jika alokasi pertama berhasil, transaksi kedua langsung memicu `RuntimeException` yang dikembalikan sebagai HTTP 409 Conflict ke antarmuka pengguna dengan pesan bahwa slot tersebut sudah terisi."
 
 ### Q3: Mengapa penghapusan Site dan Room tidak menggunakan `cascadeOnDelete` biasa, melainkan menerapkan audit dependensi yang ketat (*Delete Guards*)?
+
 **Jawaban Mahasiswa**:
+
 > "Karena data center melibatkan kontrak hukum komersial dan perangkat berharga tinggi milik pelanggan pihak ketiga (*tenant assets*). Jika kami mengizinkan penghapusan berantai (*cascade delete*) tanpa penjagaan, seorang operator yang tidak sengaja menghapus satu Site akan memusnahkan seluruh riwayat penempatan perangkat pelanggan, alokasi daya, dan memutus keterkaitan data pada modul CRM (Sales Order dan Kontrak Pelanggan). Oleh sebab itu, fungsi `SiteService::deleteSite()` bertindak sebagai *gatekeeper*: sistem memeriksa apakah masih ada kontrak aktif, sales order, alokasi daya/bandwidth aktif, atau perangkat berpemilik. Jika ditemukan satu saja keterkaitan komersial, penghapusan ditolak secara mutlak dengan status HTTP 409. Operasi *cascade delete* hanya diizinkan untuk entitas murni infrastruktur internal yang sudah benar-benar kosong dari keterikatan pelanggan."
 
 ### Q4: Mengapa status alokasi rak memiliki nilai `reserved` selain `active`? Apa bedanya secara teknis dan bisnis?
+
 **Jawaban Mahasiswa**:
+
 > "Secara bisnis, terdapat jeda waktu antara penandatanganan penawaran harga (*Sales Order*) oleh calon pelanggan dengan tanggal aktifnya kontrak operasional (*Contract Active*). Pada tahap Sales Order, calon pelanggan telah memesan 10U ruang rak. Jika sistem baru mengunci rak saat kontrak aktif, maka selama masa tunggu tersebut slot rak tersebut rawan dijual kembali oleh sales lain (*over-selling* / *double booking*). Oleh karena itu, kami memperkenalkan status `reserved` yang dikaitkan ke `sales_order_id`. Secara teknis pada fungsi `occupancyMap()` dan `allocate()`, slot `reserved` diperlakukan sama persis dengan `active` yaitu berstatus *occupied/booked*, sehingga tidak bisa dialokasikan ke pihak lain. Perbedaannya, status `reserved` belum memicu proses *billing* penagihan bulanan sebelum statusnya berubah menjadi `active`."
 
 ### Q5: Mengapa pelepasan alokasi rak (*rack release*) memerlukan alur kerja persetujuan (*Workflow Engine*) dan tidak langsung dihapus oleh staf teknisi lapangan?
+
 **Jawaban Mahasiswa**:
+
 > "Pelepasan slot rak (*de-allocation*) memiliki dampak finansial langsung terhadap penghentian pendapatan berulang (*Monthly Recurring Revenue / MRR*) dari pelanggan. Untuk mencegah kecurangan (*fraud*) atau kesalahan operasional di mana teknisi lapangan melepas kapasitas pelanggan tanpa konfirmasi dari divisi komersial, kami menerapkan prinsip tata kelola *Four-Eyes Principle (Two-Man Rule)*. Tombol pelepasan di UI mengeksekusi `RackController::requestRelease()` yang mengirimkan proposal pelepasan ke `WorkflowEngineService` dengan template `rack-action-approval-v1`. Status slot menjadi `pending_release`. Alokasi baru benar-benar dilepas dari rak setelah disetujui secara resmi oleh Manager Operasional melalui modul persetujuan terpusat."
