@@ -1,0 +1,73 @@
+flowchart TD
+    %% Styling and layout
+    classDef client fill:#EBF8FF,stroke:#3182CE,stroke-width:2px;
+    classDef gateway fill:#FEFCBF,stroke:#D69E2E,stroke-width:2px;
+    classDef service fill:#E6FFFA,stroke:#319795,stroke-width:2px;
+    classDef crossmod fill:#FFF5F5,stroke:#E53E3E,stroke-width:2px;
+    classDef db fill:#FAF5FF,stroke:#805AD5,stroke-width:2px;
+
+    subgraph CLIENT["1. Lapisan Antarmuka Pengguna (React 18 + TypeScript + Vite)"]
+        direction TB
+        UI_LEAD["Manajemen Pipeline Penjualan<br/>- LeadListPage & OpportunityListPage (Kanban)<br/>- Konversi Lead -> Customer & Opportunity"]:::client
+        UI_QUOTE["Katalog Layanan & Penawaran<br/>- ProductListPage & PromoPackageListPage<br/>- QuotationListPage & QuotationFormModal<br/>- Kalkulasi Diskon, Pajak, Billing Type (Recurring vs One-Time)"]:::client
+        UI_CONTRACT["Kontrak & Visual Resource Locking<br/>- ContractListPage & ContractDetailPage<br/>- Embedded RackVisualPicker (Integrasi DC Ops)<br/>- Upload Berkas Bertandatangan (confirmSignedDocument)"]:::client
+        UI_SO["Pesanan Penjualan & SLA<br/>- SalesOrderListPage & SalesOrderDetailPage<br/>- SlaListPage & RenewalListPage (Early Warning Expiration)"]:::client
+        UI_AXIOS["Centralized Axios Client (api-client.ts)<br/>- Header Authorization: Bearer Token<br/>- Header X-Organization-Id (Multi-Tenancy Guard)"]:::client
+
+        UI_LEAD --> UI_AXIOS
+        UI_QUOTE --> UI_AXIOS
+        UI_CONTRACT --> UI_AXIOS
+        UI_SO --> UI_AXIOS
+    end
+
+    subgraph API_GATEWAY["2. Lapisan Pengendali & Endpoint API (Laravel 11 REST API)"]
+        direction TB
+        CTRL_LEAD["LeadController & OpportunityController<br/>- /leads/{lead}/convert<br/>- /opportunities/pipeline-summary"]:::gateway
+        CTRL_QUOTE["QuotationController<br/>- POST /quotations (Draft & Lines)<br/>- /quotations/{id}/submit-approval<br/>- /quotations/{id}/print-pdf (HMAC QR PIC)"]:::gateway
+        CTRL_CTR["ContractController<br/>- POST /contracts/from-quotation<br/>- POST /contracts/{id}/site (Set DC Site)<br/>- GET /contracts/{id}/resource-status<br/>- POST /contracts/{id}/confirm-signed-document"]:::gateway
+        CTRL_SO["SalesOrderController & CrmInvoiceHandoff<br/>- POST /sales-orders/from-quotation<br/>- GET/POST /invoices/send-to-finance"]:::gateway
+        CTRL_SLA["SlaController & ContractRenewalController<br/>- /contracts/{id}/slas & /breaches<br/>- /contract-renewals/check-upcoming-expirations"]:::gateway
+    end
+
+    subgraph CRM_SERVICES["3. Lapisan Logika Bisnis & Layanan Domain CRM (app/Services/)"]
+        direction TB
+        SRV_LEAD["LeadService & OpportunityService<br/>- Lead Qualification Lifecycle<br/>- Pipeline Probability Weighting & Win/Loss"]:::service
+        SRV_QUOTE["QuotationService<br/>- Subtotal, Discount & Tax Calculation Engine<br/>- Atomic Pessimistic Locking on Status Changes<br/>- Transition: draft -> waiting_approval -> approved -> sent -> accepted/lost"]:::service
+        SRV_CTR["ContractManagementService<br/>- State Machine: draft -> pending_approvals -> sent_to_client -> active<br/>- ResourceLockStatus Verification (Unit U vs Whole Rack)<br/>- Automated Sales Order Trigger on Active<br/>- InvoiceOneTimeCharges Dispatcher"]:::service
+        SRV_SO["SalesOrderService<br/>- Fulfillment Order Issuance<br/>- Resource Provisioning Requirements Tracking<br/>- Anti-Double-Billing Safeguards"]:::service
+        SRV_REP["CrmReportService & SlaService<br/>- Real-time MRR, ARR, Churn Rate Analytics<br/>- Uptime / Power / Temperature SLA Compliance"]:::service
+    end
+
+    subgraph CROSS_MODULE["4. Titik Sambung Integrasi Lintas Modul (CorePlatform, DataCenterOps, Finance)"]
+        direction TB
+        INT_CORE["CorePlatform Kernel<br/>- NumberSequence::next('crm_quotation' | 'contract' | 'sales_order')<br/>- Workflow Engine: quotation-approval-v1 (Manager)<br/>- Workflow Engine: contract-approval-v1 (Finance -> Legal)<br/>- ScopesOrganization Trait (Row-Level Multi-Tenancy)"]:::crossmod
+        INT_DCOPS["DataCenterOps (Physical Capacity Layer)<br/>- Site & Room Spatial Hierarchy<br/>- RackVisualPicker (42U Slot Grid)<br/>- dc_rack_allocation (Pessimistic Locking: active / reserved)<br/>- dc_bandwidth_allocation & dc_cross_connect"]:::crossmod
+        INT_FIN["FinanceAccounting (Billing & General Ledger)<br/>- Event ContractActivated -> RegisterBillingContract (fin_bi_billing_contract)<br/>- invoiceOneTimeCharges() -> ArInvoice (Setup & CC fee)<br/>- AccountsReceivableService Integration & CoA Mapping"]:::crossmod
+    end
+
+    subgraph DATABASE["5. Lapisan Basis Data MySQL (crm_* Schema)"]
+        direction TB
+        subgraph DB_PIPELINE["Pipeline & Katalog Produk"]
+            DB_LEAD[("crm_leads & crm_opportunities<br/>- id, stage, probability_pct<br/>- estimated_value, customer_id")]:::db
+            DB_CUST[("crm_customers & contacts/addresses<br/>- customer_code, company_name<br/>- industry, tax_id (NPWP)")]:::db
+            DB_PROD[("crm_products & crm_promo_packages<br/>- default_rack_u, default_power_watt<br/>- default_bandwidth_mbps, rack_mode")]:::db
+        end
+
+        subgraph DB_TRANSAKSI["Siklus Transaksi Penjualan"]
+            DB_QUOTE[("crm_quotations & crm_quotation_lines<br/>- quotation_number, total_amount<br/>- billing_type: recurring | one_time")]:::db
+            DB_CTR[("crm_contracts & crm_contract_services<br/>- contract_number, monthly_value<br/>- site_id, resources_locked_at<br/>- signed_file_id, status")]:::db
+            DB_SO[("crm_sales_orders & lines<br/>- so_number, contract_id, customer_id<br/>- resources_reserved_at, status")]:::db
+            DB_RENEW[("crm_contract_renewals & crm_contract_addenda<br/>- parent_contract_id, renewal_status<br/>- proposed_monthly_value")]:::db
+            DB_SLA[("crm_slas & crm_sla_breaches<br/>- metric_name, target_value<br/>- breach_duration, penalty_amount")]:::db
+        end
+    end
+
+    CLIENT -->|HTTP REST + Bearer Token + X-Organization-Id| API_GATEWAY
+    API_GATEWAY --> CRM_SERVICES
+    CRM_SERVICES --> DATABASE
+    
+    SRV_QUOTE -.->|Minta Nomor & Approval| INT_CORE
+    SRV_CTR -.->|Approval 2 Tahap| INT_CORE
+    SRV_CTR <==>|Verifikasi & Kunci Kapasitas Rak/Daya| INT_DCOPS
+    SRV_CTR ==>|Pemicu Kontrak Billing & AR Invoice| INT_FIN
+    SRV_SO -.->|Pemicu Perintah Kerja Provisioning| INT_DCOPS
