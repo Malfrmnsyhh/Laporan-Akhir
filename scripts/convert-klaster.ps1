@@ -1,4 +1,4 @@
-﻿# Skrip Otomasi Konversi Catatan Bedah Klaster (Standar UPN 'Veteran' Jawa Timur)
+# Skrip Otomasi Konversi Catatan Bedah Klaster (Standar UPN 'Veteran' Jawa Timur)
 # Engine: Python (python-docx + Pygments) untuk DOCX + MS Word COM Automation untuk PDF 100% Identik
 # Lokasi: scripts/convert-klaster.ps1
 

@@ -1,0 +1,64 @@
+graph TD
+    %% Styling Global
+    classDef frontend fill:#E0F2FE,stroke:#0284C7,stroke-width:2px,color:#0369A1;
+    classDef hook fill:#FEF3C7,stroke:#D97706,stroke-width:2px,color:#B45309;
+    classDef api fill:#F3E8FF,stroke:#7E22CE,stroke-width:2px,color:#6B21A8;
+    classDef service fill:#DCFCE7,stroke:#15803D,stroke-width:2px,color:#166534;
+    classDef guard fill:#FEE2E2,stroke:#DC2626,stroke-width:2px,color:#991B1B;
+    classDef database fill:#F1F5F9,stroke:#475569,stroke-width:2px,color:#1E293B;
+
+    subgraph FE["1. Frontend Layer (React 18 + Tailwind CSS)"]
+        UI_MGT["VisitorPassListPage & DetailPage<br/>(/dc/visitor-passes)<br/><i>Katalog & Approval Izin Masuk</i>"]:::frontend
+        UI_SCAN["VisitorPassScannerPage<br/>(/dc/visitor-scanner)<br/><i>Live WebCam jsQR & Headcount</i>"]:::frontend
+        UI_PUB_REG["PublicVisitorRegistrationPage<br/>(/visitor-registration/:token)<br/><i>Formulir Tamu & Deklarasi K3/NDA</i>"]:::frontend
+        UI_PUB_BADGE["PublicVisitorPassPage<br/>(/visitor-pass/:token)<br/><i>E-Badge Digital & QR Code Single-Use</i>"]:::frontend
+    end
+
+    subgraph HOOKS["2. Client State & Query Layer (TanStack Query)"]
+        HK_MGT["useVisitorPass & visitorPassApi<br/><i>useVisitorPassList, useApproveVisitorPass</i>"]:::hook
+        HK_SCAN["useScanVerifyVisitorPass<br/><i>useActiveInFacility, useCheckOutVisitorPass</i>"]:::hook
+    end
+
+    subgraph ROUTE["3. Routing & Security Layer (Laravel API)"]
+        RT_INT["/api/v1/data-center-ops/visitor-passes<br/><i>auth:api, permission:visitor-pass.*</i>"]:::api
+        RT_PUB["/api/v1/public/visitor-invitation/{token}<br/><i>Public (No-Auth) - Formulir & Registrasi</i>"]:::api
+        RT_SCAN["/api/v1/data-center-ops/visitor-passes/scan-verify<br/><i>auth:api - Meja Resepsionis / Pos Jaga</i>"]:::api
+        RT_BADGE["/api/v1/public/visitor-pass/{publicUrlToken}<br/><i>Public E-Badge Display</i>"]:::api
+    end
+
+    subgraph SERVICE["4. Domain Service & Controller Layer"]
+        SRV_PASS["VisitorPassService & VisitorPassController<br/><i>Validasi Kontrak CRM, Alokasi Rak & Siklus Status</i>"]:::service
+        SRV_PUB["PublicVisitorPassController<br/><i>Pendaftaran Mandiri & Masking Data Sensitif</i>"]:::service
+        SEC_GUARD["Security Engine & Anti-Replay Guard<br/><i>Pessimistic Lock (lockForUpdate) & Single-Use Revocation</i>"]:::guard
+    end
+
+    subgraph DB["5. Database Layer (MySQL Relational Schema)"]
+        DB_PASS[("dc_visitor_pass<br/><i>Token Hash, Status, Target Racks, Jadwal</i>")]:::database
+        DB_LOG[("dc_visitor_access_log<br/><i>Audit Trail: Officer, IP, Waktu, Hasil</i>")]:::database
+        DB_CRM[("crm_contract & dc_rack_allocation<br/><i>Status Kontrak & Hak Akses Rak Pelanggan</i>")]:::database
+    end
+
+    %% Alur Kerja Jalur Undangan & Registrasi Mandiri
+    UI_MGT -->|"1. Terbitkan Undangan"| HK_MGT --> RT_INT --> SRV_PASS
+    SRV_PASS -->|"Verifikasi Kontrak & Rak"| DB_CRM
+    SRV_PASS -->|"Simpan Status: pending_registration"| DB_PASS
+
+    UI_PUB_REG -->|"2. Submit Data Diri & K3"| RT_PUB --> SRV_PUB
+    SRV_PUB -->|"Update Status: registered"| DB_PASS
+
+    UI_MGT -->|"3. Operator Approve"| HK_MGT --> RT_INT --> SRV_PASS
+    SRV_PASS -->|"Generate Token & Status: scheduled"| DB_PASS
+
+    UI_PUB_BADGE -->|"4. Tampilkan E-Badge QR"| RT_BADGE --> SRV_PUB
+    SRV_PUB -.->|"Baca Token Terenkripsi"| DB_PASS
+
+    %% Alur Pemindaian Pos Jaga (Live Check-In)
+    UI_SCAN -->|"5. Scan QR via WebCam / USB"| HK_SCAN --> RT_SCAN --> SRV_PASS
+    SRV_PASS --> SEC_GUARD
+    SEC_GUARD -->|"Pessimistic Lock & SHA-256 Hash Match"| DB_PASS
+    SEC_GUARD -->|"Catat Log Akses Tak Terbantahkan"| DB_LOG
+    SEC_GUARD --o|"Cek Anti-Replay (Tolak Jika Sudah Dipakai)"| DB_PASS
+
+    %% Check-Out
+    UI_SCAN -->|"6. Check-Out Pengunjung"| HK_SCAN --> RT_INT --> SRV_PASS
+    SRV_PASS -->|"Update Status: completed"| DB_PASS
