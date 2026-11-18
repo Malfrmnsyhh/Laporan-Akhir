@@ -8,9 +8,11 @@
 ## 1. FILOSOFI BISNIS & IDENTIFIKASI MASALAH
 
 ### 1.1. Peran Strategis Operasional Harian dalam Industri Data Center
-Operasional pusat data (*data center*) komersial tidak hanya bertumpu pada keandalan infrastruktur fisik dan telemetri perangkat, melainkan juga pada efisiensi alur kerja administratif dan ketepatan eksekusi teknis harian. Layanan *colocation* berstandar *enterprise* mewajibkan kepatuhan ketat terhadap *Service Level Agreement* (SLA), pencatatan jam kerja penanganan teknis (*remote hands*), transparansi utilisasi daya dan ruang, serta legalitas administrasi melalui berita acara resmi. 
+
+Operasional pusat data (*data center*) komersial tidak hanya bertumpu pada keandalan infrastruktur fisik dan telemetri perangkat, melainkan juga pada efisiensi alur kerja administratif dan ketepatan eksekusi teknis harian. Layanan *colocation* berstandar *enterprise* mewajibkan kepatuhan ketat terhadap *Service Level Agreement* (SLA), pencatatan jam kerja penanganan teknis (*remote hands*), transparansi utilisasi daya dan ruang, serta legalitas administrasi melalui berita acara resmi.
 
 Klaster 4 (Operasional & Administrasi Harian) mengintegrasikan empat pilar proses bisnis utama:
+
 1. **Manajemen Tiket Insiden & Layanan Teknis (*Tickets & Remote Hands*)**: Pengelolaan gangguan dan permintaan bantuan teknisi fasilitas (*smart hands / remote hands*) dengan pelacakan tenggat waktu respon dan penyelesaian berdasarkan kontrak SLA pelanggan.
 2. **Perintah Kerja Lapangan (*Work Orders*)**: Penjabaran pesanan penjualan (*sales order*) dari modul CRM menjadi daftar periksa (*checklist*) instalasi perangkat fisik, penarikan kabel *cross-connect*, pengalokasian alamat IP, hingga tahap pengujian akhir (*commissioning*).
 3. **Pencatatan Utilisasi & Tagihan (*Usage Records & Billing*)**: Agregasi data konsumsi *rack space*, daya listrik (*power* rata-rata kW), *bandwidth*, dan jam kerja *remote hands* secara bulanan yang terintegrasi secara otomatis ke modul *Finance & Accounting* sebagai draf faktur piutang (*Accounts Receivable Invoice*).
@@ -19,7 +21,9 @@ Klaster 4 (Operasional & Administrasi Harian) mengintegrasikan empat pilar prose
 ---
 
 ### 1.2. Identifikasi Masalah Riil Industri & Dampak Ketiadaan Sistem
+
 Ketiadaan sistem terpadu yang menjembatani operasional lapangan dengan administrasi korporat menimbulkan berbagai risiko fatal:
+
 - **Pelanggaran SLA Tanpa Mitigasi (*Unmonitored SLA Breaches*)**: Tiket gangguan yang dicatat secara manual melalui pesan instan sering kali terabaikan tanpa peringatan dini. Hal ini memicu denda penalti finansial (*SLA penalty credits*) dan kerugian reputasi akibat lambatnya waktu respon (*response time*) maupun resolusi (*resolution time*).
 - **Kebocoran Pendapatan Teknis (*Unbilled Remote Hands Leakage*)**: Teknisi data center kerap kali melakukan tindakan fisik (seperti *reboot server*, penggantian kabel *patch cord*, atau inspeksi indikator LED) tanpa pencatatan durasi kerja terstandar. Akibatnya, jam kerja teknisi tidak dapat ditagihkan kepada pelanggan (*unbilled billable hours*), menimbulkan kerugian operasional ribuan dolar per bulan.
 - **Kesenjangan antara Penjualan CRM dan Realisasi Lapangan (*Provisioning Gap*)**: Staf pemasaran sering kali menandai pesanan penjualan (*sales order*) telah selesai tanpa verifikasi apakah rak telah dipasang, kabel telah disambungkan, dan perangkat telah diuji. Ketiadaan *Work Order* berbasis *milestone* membuat status kontrak aktif prematur sebelum fasilitas siap digunakan.
@@ -29,7 +33,9 @@ Ketiadaan sistem terpadu yang menjembatani operasional lapangan dengan administr
 ---
 
 ### 1.3. Pemodelan Entitas dan Relasi Data
+
 Hubungan relasional antar-tabel dalam basis data Klaster 4 dirancang sebagai berikut:
+
 - Entitas `dc_ticket` memiliki relasi *one-to-many* ke `dc_ticket_activity`. Setiap tiket berelasi secara opsional (*nullable foreign key*) ke `crm_customer`, `crm_contract`, `crm_contract_service`, `crm_sla`, `dc_site`, dan `dc_device`.
 - Entitas `dc_work_order` bertindak sebagai penghubung antara `crm_sales_order` (1:1) dan `crm_contract` (1:1). `dc_work_order` memiliki relasi *one-to-many* ke `dc_work_order_item`. Masing-masing item layanan berelasi ke `crm_contract_service` dan secara langsung menautkan inventaris `dc_device`, `dc_cross_connect`, dan `dc_ip_address`.
 - Entitas `dc_usage_record` menampung catatan utilisasi bulanan per `customer_id`, `site_id`, `usage_type`, `period_month`, dan `period_year` dengan status siklus hidup (`draft`, `sent_to_finance`, `billed`).
@@ -40,9 +46,10 @@ Hubungan relasional antar-tabel dalam basis data Klaster 4 dirancang sebagai ber
 ## 2. ARSITEKTUR FULLSTACK & ALUR KODE END-TO-END
 
 ### 2.1. Alur Manajemen Tiket, Pelacakan SLA, dan Eskalasi Multi-Channel
+
 Siklus hidup tiket dirancang menggunakan mesin status (*state machine*) ketat yang membedakan status tiket baru, pemeliharaan, penundaan konfirmasi pelanggan, penyelesaian, hingga penutupan permanen.
 
-```
+```Shell
 React UI (TicketListPage/TicketDetailPage)
        │
        ▼ (HTTP POST /v1/data-center-ops/tickets)
@@ -63,6 +70,7 @@ CheckTicketSlaEscalationsCommand (Cron Tiap 15 Menit)
 ```
 
 #### Cuplikan Kode Backend: Resolusi SLA dan Penutupan Tiket (`TicketService.php`)
+
 ```php
 public function create(array $data): Ticket
 {
@@ -123,6 +131,7 @@ public function create(array $data): Ticket
 ```
 
 Saat penutupan tiket, sistem mewajibkan pengisian `resolution_action` sebagai catatan pertanggungjawaban teknis dan mengunci tiket agar tidak dapat dimanipulasi:
+
 ```php
 public function updateStatus(Ticket $ticket, string $status, ?int $performedBy = null, ?string $resolutionAction = null): Ticket
 {
@@ -153,6 +162,7 @@ public function updateStatus(Ticket $ticket, string $status, ?int $performedBy =
 ---
 
 ### 2.2. Alur Perintah Kerja (*Work Order*) dan Rekonsiliasi Kontrak Dinamis
+
 Perintah Kerja (*Work Order*) menjembatani *Sales Order* aktif dengan implementasi fisik di lapangan. Pembuatan *Work Order* menggunakan pola *lazy initialization*: berkas dibuat otomatis saat staf operasional membuka rincian pesanan pertama kali.
 
 ```
@@ -175,6 +185,7 @@ WorkOrderController::toggleItem() -> WorkOrderService::toggleItem()
 ```
 
 #### Cuplikan Kode Backend: Rekomputasi Tanggal Kontrak (`WorkOrderService.php`)
+
 ```php
 private function recomputeContractDates(WorkOrder $workOrder): void
 {
@@ -208,6 +219,7 @@ private function recomputeContractDates(WorkOrder $workOrder): void
 ---
 
 ### 2.3. Agregasi Metrik Utilisasi dan Integrasi Tagihan Otomatis (*Finance Billing*)
+
 Pencatatan pemakaian sumber daya dihitung secara bulanan melalui algoritma agregasi pada `UsageReportingService`. Proses ini bersifat idempoten (*idempotent*): mengeksekusi ulang fungsi *generate* untuk periode yang sama akan memperbarui kuantitas data tanpa membuat rekaman ganda.
 
 ```
@@ -231,13 +243,19 @@ Buat Faktur Draf AR Invoice (fi_ar_invoice) -> Menunggu Review Finance
 ```
 
 #### Alokasi Proporsional Metrik Daya dan *Bandwidth*
+
 Apabila suatu situs data center mengonsumsi rata-rata daya listrik sebesar $P_{\text{avg}}$ (dalam kW), dan total kapasitas unit rak terpakai pada situs tersebut adalah $U_{\text{total}}$, maka alokasi kuantitas daya untuk pelanggan $i$ yang menyewa $U_i$ unit rak dihitung melalui persamaan:
-$$P_i = P_{\text{avg}} \times \left( \frac{U_i}{U_{\text{total}}} \right)$$
+
+$$
+P_i = P_{\text{avg}} \times \left( \frac{U_i}{U_{\text{total}}} \right)
+$$
 
 Metode serupa diterapkan pada agregasi *bandwidth* ($B_i$) untuk menjamin keadilan pembebanan biaya operasional secara matematis.
 
 #### Integrasi Penagihan Remote Hands ke Modul Finance
+
 Saat pengguna menekan tombol *Bill Remote Hands* dan memasukkan tarif per jam (*rate per hour*), sistem menembakkan *event* `UsageRecordBillable`:
+
 ```php
 public function billRemoteHands(Request $request, UsageRecord $usageRecord)
 {
@@ -264,6 +282,7 @@ public function billRemoteHands(Request $request, UsageRecord $usageRecord)
 ---
 
 ### 2.4. Dokumen Operasional DC, Alur Persetujuan, dan Tanda Tangan Digital
+
 Pengelolaan dokumen teknis operasional terhubung dengan subsistem dokumen terpadu (`CorePlatform`). Naskah dinas seperti Berita Acara Instalasi (BAI) dan Uji Terima (BAUT) melalui serangkaian tahapan validasi:
 
 ```
@@ -282,6 +301,7 @@ SuratDcOpsDetailPage (/dc/surat/:id)
 ```
 
 Tanda tangan digital pada dokumen mencakup dua peran:
+
 1. **Pembuat Surat (*Creator Signature*)**: Ditandatangani secara eksplisit oleh staf teknis yang menyusun berita acara melalui tombol tanda tangan pada antarmuka.
 2. **Pemberi Persetujuan (*Approver Signature*)**: Ditandatangani secara otomatis oleh manajer fasilitas data center begitu alur persetujuan pada *Workflow Engine* berstatus selesai (*approved*).
 
@@ -291,27 +311,28 @@ Tanda tangan digital pada dokumen mencakup dua peran:
 
 ### 3.1. Tabel Kontrak Endpoint API Klaster 4
 
-| Method | Endpoint URI | Fungsi & Deskripsi | Parameter & Body Kunci |
-| :--- | :--- | :--- | :--- |
-| `GET` | `/v1/data-center-ops/tickets` | Mengambil daftar tiket gangguan & layanan | `status`, `priority`, `ticket_type`, `customer_id`, `open_only`, `page`, `per_page` |
-| `POST` | `/v1/data-center-ops/tickets` | Membuat tiket insiden atau *remote hands* baru | `customer_id`, `contract_id`, `site_id`, `ticket_type`, `priority`, `subject`, `description` |
-| `POST` | `/v1/data-center-ops/tickets/{id}/activities` | Mencatat log kerja atau komentar teknisi | `activity_type`, `description`, `duration_minutes` (min: 1) |
-| `POST` | `/v1/data-center-ops/tickets/{id}/status` | Mengubah status tiket (*state machine*) | `status` (`trouble`, `maintenance`, `pending_customer`, `normal`, `closed`), `resolution_action` |
-| `POST` | `/v1/data-center-ops/tickets/{id}/assign` | Menugaskan tiket ke staf teknisi | `user_id` |
-| `GET` | `/v1/data-center-ops/work-orders` | Mengambil daftar *Sales Order* aktif yang belum selesai | `search`, `page`, `per_page` |
-| `GET` | `/v1/data-center-ops/work-orders/{so_id}` | Membuka rincian perintah kerja (*lazy initialize*) | `salesOrderId` (Path Parameter) |
-| `POST` | `/v1/data-center-ops/work-order-items/{id}/toggle` | Menandai selesai/batal item perintah kerja | `is_completed` (boolean), `notes` (string, max: 1000) |
-| `GET` | `/v1/data-center-ops/usage-records` | Mengambil daftar agregasi utilisasi bulanan | `customer_id`, `usage_type`, `status`, `period_month`, `period_year` |
-| `POST` | `/v1/data-center-ops/usage-records/generate` | Menjalankan agregasi pemakaian sumber daya | `month` (1-12), `year` (2000-2100) |
-| `POST` | `/v1/data-center-ops/usage-records/{id}/bill-remote-hands` | Menerbitkan draf invoice tagihan *remote hands* | `rate_per_hour` (numeric, min: 0) |
-| `POST` | `/v1/data-center-ops/usage-records/{id}/mark-sent` | Menandai data pemakaian telah dikirim ke Finance | - |
-| `GET` | `/v1/core-platform/documents` | Mengambil daftar surat & berita acara dinas | `module_code=data-center-ops`, `document_type`, `status`, `search` |
-| `POST` | `/v1/core-platform/documents/{id}/sign` | Menandatangani naskah dinas sebagai pembuat | - |
-| `GET` | `/v1/public/documents/verify` | Verifikasi keaslian dokumen via kode QR (Publik) | `number` (Nomor Surat) |
+| Method   | Endpoint URI                                                 | Fungsi & Deskripsi                                        | Parameter & Body Kunci                                                                                         |
+| :------- | :----------------------------------------------------------- | :-------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------- |
+| `GET`  | `/v1/data-center-ops/tickets`                              | Mengambil daftar tiket gangguan & layanan                 | `status`, `priority`, `ticket_type`, `customer_id`, `open_only`, `page`, `per_page`              |
+| `POST` | `/v1/data-center-ops/tickets`                              | Membuat tiket insiden atau *remote hands* baru          | `customer_id`, `contract_id`, `site_id`, `ticket_type`, `priority`, `subject`, `description`     |
+| `POST` | `/v1/data-center-ops/tickets/{id}/activities`              | Mencatat log kerja atau komentar teknisi                  | `activity_type`, `description`, `duration_minutes` (min: 1)                                              |
+| `POST` | `/v1/data-center-ops/tickets/{id}/status`                  | Mengubah status tiket (*state machine*)                 | `status` (`trouble`, `maintenance`, `pending_customer`, `normal`, `closed`), `resolution_action` |
+| `POST` | `/v1/data-center-ops/tickets/{id}/assign`                  | Menugaskan tiket ke staf teknisi                          | `user_id`                                                                                                    |
+| `GET`  | `/v1/data-center-ops/work-orders`                          | Mengambil daftar *Sales Order* aktif yang belum selesai | `search`, `page`, `per_page`                                                                             |
+| `GET`  | `/v1/data-center-ops/work-orders/{so_id}`                  | Membuka rincian perintah kerja (*lazy initialize*)      | `salesOrderId` (Path Parameter)                                                                              |
+| `POST` | `/v1/data-center-ops/work-order-items/{id}/toggle`         | Menandai selesai/batal item perintah kerja                | `is_completed` (boolean), `notes` (string, max: 1000)                                                      |
+| `GET`  | `/v1/data-center-ops/usage-records`                        | Mengambil daftar agregasi utilisasi bulanan               | `customer_id`, `usage_type`, `status`, `period_month`, `period_year`                                 |
+| `POST` | `/v1/data-center-ops/usage-records/generate`               | Menjalankan agregasi pemakaian sumber daya                | `month` (1-12), `year` (2000-2100)                                                                         |
+| `POST` | `/v1/data-center-ops/usage-records/{id}/bill-remote-hands` | Menerbitkan draf invoice tagihan *remote hands*         | `rate_per_hour` (numeric, min: 0)                                                                            |
+| `POST` | `/v1/data-center-ops/usage-records/{id}/mark-sent`         | Menandai data pemakaian telah dikirim ke Finance          | -                                                                                                              |
+| `GET`  | `/v1/core-platform/documents`                              | Mengambil daftar surat & berita acara dinas               | `module_code=data-center-ops`, `document_type`, `status`, `search`                                     |
+| `POST` | `/v1/core-platform/documents/{id}/sign`                    | Menandatangani naskah dinas sebagai pembuat               | -                                                                                                              |
+| `GET`  | `/v1/public/documents/verify`                              | Verifikasi keaslian dokumen via kode QR (Publik)          | `number` (Nomor Surat)                                                                                       |
 
 ---
 
 ### 3.2. Logika Proteksi Data, Integritas Transaksi & Edge Cases
+
 1. **Ketertutupan Status Tiket Permanen (*Closed State Immutability*)**: Tiket dengan status `closed` dilindungi dari segala bentuk pembaruan data lanjutan. Sistem akan melemparkan *exception* `\RuntimeException` berstatus kode HTTP 409 bila dilakukan upaya modifikasi. Selain itu, penutupan tiket mewajibkan input teks `resolution_action` untuk memenuhi audit transparansi penanganan insiden.
 2. **Throttling Notifikasi Eskalasi SLA**: Pemeriksaan keterlambatan SLA melalui *cron schedule* `CheckTicketSlaEscalationsCommand` dijalankan secara berkala setiap 15 menit. Guna mencegah pembanjiran notifikasi (*alert storming / spam*), sistem mengimplementasikan pembatasan (*throttle*) 4 jam pada kolom `escalated_at`.
 3. **Pemberitahuan Multi-Channel Independen**: Pengiriman notifikasi penugasan tiket dan eskalasi mendesak memanfaatkan dua saluran independen (Email dan WhatsApp). Eksekusi kedua saluran dibungkus dalam blok penanganan kesalahan (*try-catch*) terpisah, memastikan kegagalan pada penyedia layanan WhatsApp (misalnya nomor kontak belum terdaftar) tidak membatalkan pengiriman email resmi korporat.
@@ -325,48 +346,57 @@ Tanda tangan digital pada dokumen mencakup dua peran:
 Berikut adalah kompilasi pertanyaan kritis yang kerap diajukan oleh dosen penguji atau pembimbing tugas akhir/sidang PKL beserta formula jawaban ilmiah berbasis kode:
 
 ### Pertanyaan 1:
+
 > *"Bagaimana sistem menjamin bahwa tiket insiden yang dibuat benar-benar terikat pada batas waktu SLA yang disepakati dengan pelanggan, dan apa yang terjadi jika insinyur terlambat merespons?"*
 
-**Formula Jawaban Ilmiah:**  
-Sistem menerapkan mekanisme keterikatan SLA berjenjang (*hierarchical SLA resolution*) pada lapisan `TicketService`. Saat tiket dibuat, sistem mencari referensi batas waktu dengan prioritas: (1) `sla_id` spesifik layanan, (2) SLA yang melekat pada `crm_contract` aktif, atau (3) kontrak aktif pelanggan tersebut. Dari konfigurasi SLA, sistem menghitung secara presisi batas waktu tanggap (`sla_response_due_at`) dan batas waktu penyelesaian (`sla_resolution_due_at`).  
+**Formula Jawaban Ilmiah:**
+Sistem menerapkan mekanisme keterikatan SLA berjenjang (*hierarchical SLA resolution*) pada lapisan `TicketService`. Saat tiket dibuat, sistem mencari referensi batas waktu dengan prioritas: (1) `sla_id` spesifik layanan, (2) SLA yang melekat pada `crm_contract` aktif, atau (3) kontrak aktif pelanggan tersebut. Dari konfigurasi SLA, sistem menghitung secara presisi batas waktu tanggap (`sla_response_due_at`) dan batas waktu penyelesaian (`sla_resolution_due_at`).
 Untuk mencegah kelalaian teknisi, sistem menjalankan perintah terjadwal (*scheduled console command*) `CheckTicketSlaEscalationsCommand` setiap 15 menit. Perintah ini mengevaluasi apakah `now() > sla_response_due_at` atau `now() > sla_resolution_due_at` pada tiket yang masih aktif. Apabila terdeteksi pelanggaran (*breach*), sistem secara otomatis mencatat aktivitas bertipe `escalation` ke tabel `dc_ticket_activity` dan mengirimkan peringatan darurat multi-saluran (*multi-channel*) berupa surel dan pesan WhatsApp langsung ke teknisi yang ditugaskan, dengan mekanisme pembatasan waktu (*throttle*) selama 4 jam agar tidak terjadi penumpukan notifikasi berulang.
 
 ---
 
 ### Pertanyaan 2:
+
 > *"Mengapa sistem membutuhkan sub-modul Work Order terpisah, padahal sudah ada Sales Order pada modul CRM dan Modul Provisioning?"*
 
-**Formula Jawaban Ilmiah:**  
-Dalam praktik operasional pusat data, terdapat kesenjangan kritis (*gap*) antara penyusunan kontrak penjualan di CRM dengan realisasi pemasangan fisik di lorong rak data center. Fungsi *provisioning* awal pada sistem umumnya hanya membuat *placeholder* atau alokasi awal, namun tidak pernah mencatat verifikasi nyata kapan teknisi memasang *server* di rak, kapan kabel serat optik dicolokkan ke port OTB, dan kapan pengujian kelayakan sinyal (*testing & commissioning*) selesai dilakukan.  
+**Formula Jawaban Ilmiah:**
+Dalam praktik operasional pusat data, terdapat kesenjangan kritis (*gap*) antara penyusunan kontrak penjualan di CRM dengan realisasi pemasangan fisik di lorong rak data center. Fungsi *provisioning* awal pada sistem umumnya hanya membuat *placeholder* atau alokasi awal, namun tidak pernah mencatat verifikasi nyata kapan teknisi memasang *server* di rak, kapan kabel serat optik dicolokkan ke port OTB, dan kapan pengujian kelayakan sinyal (*testing & commissioning*) selesai dilakukan.
 Modul `WorkOrder` hadir menutup celah ini. Melalui `WorkOrderService::findOrCreateForSalesOrder()`, sistem secara otomatis memetakan setiap rincian layanan pesanan (*contract service*) menjadi item daftar periksa (*checklist item*) lapangan, ditambah satu item pengujian akhir (*testing & commissioning*). Teknisi dapat mengalokasikan perangkat rak, *cross-connect*, dan alamat IPAM secara langsung dari jendela modal perintah kerja. Lebih jauh lagi, fungsi `recomputeContractDates()` secara dinamis memperbarui tonggak tanggal kontrak (`device_installed_at`, `internet_installed_at`, dan `testing_completed_at`) secara presisi berdasarkan bukti penyelesaian di lapangan, sehingga mencegah aktivasi faktur penagihan sewa sebelum layanan fisik benar-benar berfungsi normal.
 
 ---
 
 ### Pertanyaan 3:
+
 > *"Bagaimana kalkulasi pemakaian listrik (Power) dan Bandwidth pada Usage Records dapat dibagikan secara adil kepada masing-masing pelanggan colocation?"*
 
-**Formula Jawaban Ilmiah:**  
-Di fasilitas *colocation*, konsumsi listrik keseluruhan lorong rak diukur menggunakan sensor daya terpusat (*busway / PDU aggregate meter*) yang mencatat rata-rata kilowatt bulanan ($P_{\text{avg}}$) ke dalam tabel `dc_metric_reading`. Karena tidak semua rak memiliki sensor daya per unit individu secara independen, sistem menerapkan formula alokasi proporsional berdasarkan porsi ruang rak (*U-space share*).  
+**Formula Jawaban Ilmiah:**
+Di fasilitas *colocation*, konsumsi listrik keseluruhan lorong rak diukur menggunakan sensor daya terpusat (*busway / PDU aggregate meter*) yang mencatat rata-rata kilowatt bulanan ($P_{\text{avg}}$) ke dalam tabel `dc_metric_reading`. Karena tidak semua rak memiliki sensor daya per unit individu secara independen, sistem menerapkan formula alokasi proporsional berdasarkan porsi ruang rak (*U-space share*).
 Pada fungsi `UsageReportingService::generateProportionalMetricUsage()`, sistem mengagregasi total unit rak aktif pada situs tersebut ($U_{\text{total}}$) melalui entitas `RackAllocation`. Kemudian, untuk masing-masing pelanggan yang menyewa sejumlah $U_i$ unit, nilai daya yang dialokasikan dihitung secara matematis menggunakan rasio pembagian:
-$$P_i = \text{round}\left( P_{\text{avg}} \times \frac{U_i}{U_{\text{total}}}, 4 \right)$$
+
+$$
+P_i = \text{round}\left( P_{\text{avg}} \times \frac{U_i}{U_{\text{total}}}, 4 \right)
+$$
+
 Angka pemakaian ini disimpan dengan status `draft` pada tabel `dc_usage_record`. Dengan metode ini, pembebanan biaya fasilitas bersama (*shared infrastructure cost*) dapat dipertanggungjawabkan secara matematis, transparan, dan dapat diaudit secara ilmiah oleh pihak akuntansi maupun pelanggan.
 
 ---
 
 ### Pertanyaan 4:
+
 > *"Jelaskan arsitektur integrasi antara aktivitas teknisi Remote Hands di data center dengan pencatatan piutang di modul Finance & Accounting!"*
 
-**Formula Jawaban Ilmiah:**  
-Integrasi ini memanfaatkan arsitektur berorientasi peristiwa (*event-driven architecture*) yang bersifat transaksional. Alur data diawali saat teknisi menyelesaikan pekerjaan bantuan teknis di lapangan dan mencatat aktivitas tiket dengan `activity_type = 'remote_hands_task'` beserta atribut wajib `duration_minutes`.  
+**Formula Jawaban Ilmiah:**
+Integrasi ini memanfaatkan arsitektur berorientasi peristiwa (*event-driven architecture*) yang bersifat transaksional. Alur data diawali saat teknisi menyelesaikan pekerjaan bantuan teknis di lapangan dan mencatat aktivitas tiket dengan `activity_type = 'remote_hands_task'` beserta atribut wajib `duration_minutes`.
 Pada akhir periode bulan penagihan, fungsi `generateRemoteHandsUsage()` mengagregasi seluruh durasi aktivitas tersebut per pelanggan dan mengubah total menit ke satuan jam tagihan (`quantity = round(total_minutes / 60, 2)`). Ketika staf operasional mengeksekusi penagihan melalui endpoint `POST /usage-records/{id}/bill-remote-hands` dengan menyertakan parameter `rate_per_hour`, sistem memvalidasi bahwa rekaman belum pernah ditagihkan sebelumnya (`status != 'billed'`), lalu meluncurkan *event* `UsageRecordBillable`. *Event* ini ditangkap secara sinkron oleh pendengar (*listener*) `CreateUsageBilling` di modul `FinanceAccounting`, yang secara otomatis membentuk draf faktur piutang (*AR Invoice Draft*) lengkap dengan rincian baris layanan di tabel `fi_ar_invoice`. Faktur draf ini kemudian masuk ke antrean *AR Integration* untuk diverifikasi oleh manajer keuangan sebelum dibukukan ke jurnal buku besar (*general ledger*), sehingga mencegah terjadinya kebocoran pendapatan atas jasa keahlian teknisi.
 
 ---
 
 ### Pertanyaan 5:
+
 > *"Bagaimana keabsahan dokumen operasional seperti Berita Acara Instalasi (BAI) dilindungi dari pemalsuan fisik maupun modifikasi digital?"*
 
-**Formula Jawaban Ilmiah:**  
-Keabsahan dokumen operasional pada sistem MSDC dilindungi melalui tiga lapisan keamanan:
+**Formula Jawaban Ilmiah:**Keabsahan dokumen operasional pada sistem MSDC dilindungi melalui tiga lapisan keamanan:
+
 1. **Pemisahan Tanda Tangan Digital Ganda (*Dual Digital Signature*)**: Dokumen membedakan secara tegas tanda tangan penyusun teknis (*creator*) dan tanda tangan persetujuan manajerial (*approver*). Tanda tangan pembuat dibubuhkan melalui endpoint resmi `DocumentController::sign()`, sedangkan tanda tangan penanggung jawab dibubuhkan secara otomatis oleh sistem saat alur kerja persetujuan pada `WorkflowEngineService` tuntas disetujui.
 2. **Jejak Audit Kriptografis (*Audit Trail Metadata*)**: Setiap stempel tanda tangan merekam identitas pengguna (*User ID*), nama lengkap, alamat IP pengakses saat menandatangani, dan stempel waktu (*timestamp* ISO 8601) yang tersimpan secara terenkripsi dalam basis data.
 3. **Verifikasi Publik Kode QR (*Public QR Verification*)**: Dokumen PDF hasil render menyematkan stempel visual kode QR yang mengarah ke endpoint publik `GET /api/v1/public/documents/verify?number={nomor_surat}`. Endpoint ini dapat diakses oleh siapa pun tanpa memerlukan kredensial login (misalnya petugas keamanan gerbang fasilitas atau auditor pihak ketiga), yang akan menampilkan status validitas dokumen, nomor registrasi naskah dinas, serta riwayat nama penandatangan resmi, sehingga lembar cetakan fisik tidak dapat dipalsukan atau diubah isinya secara sepihak.

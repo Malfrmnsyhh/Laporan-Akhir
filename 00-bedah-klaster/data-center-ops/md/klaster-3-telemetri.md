@@ -9,12 +9,14 @@
 Klaster 3 memodelkan fungsi operasional *Network Operations Center* (NOC) 24×7, yang bertugas menjaga ketersediaan tinggi (*High Availability*) infrastruktur data center, memitigasi risiko kegagalan perangkat keras sebelum terjadi *downtime*, dan memberikan pengawasan visual lorong rak secara *real-time*.
 
 Di dalam pusat data berstandar *enterprise*, terdapat beberapa permasalahan kritis yang menuntut otomasi pengawasan:
+
 1. **Keterbatasan Fisik Personel NOC**: Operator tidak dapat terus-menerus berada di dalam ruang server yang bersuhu dingin ($18^\circ\text{C}$) dan bising (>75 dB) akibat deru kipas pendingin.
 2. **Kekeliruan Paradigma Pendinginan Lingkungan**: Terdapat miskonsepsi umum bahwa ruang data center harus dibuat sedingin mungkin. Secara termodinamika fisika, temperatur yang terlalu dingin justru memicu kondensasi uap air yang menyebabkan korsleting listrik (*short circuit*), sedangkan kelembapan yang terlalu kering memicu listrik statis (*Electrostatic Discharge / ESD*) yang merusak mikroprosesor.
 3. **Banjir Alarm Palsu (*Alarm Fatigue*)**: Sensor IoT yang mengirimkan data anomali setiap beberapa detik dapat membanjiri kotak masuk email operator dengan ribuan notifikasi duplikat jika tidak dilengkapi mekanisme deduplikasi.
 4. **Beban Komputasi Streaming CCTV**: Mengalirkan video pengawasan resolusi tinggi melalui server aplikasi web backend dapat menghabiskan *bandwidth* jaringan dan memicu kehabisan memori (*out of memory*) pada server PHP-FPM.
 
 Untuk mengatasi tantangan tersebut, Klaster 3 mengadopsi konsep **Segitiga Pertahanan NOC**:
+
 - **Radar Makro (Dashboard `/dc`)**: Memberikan visualisasi ringkasan kapasitas fasilitas, total beban listrik (kW), matriks insiden aktif, serta daftar petugas piket yang sedang bertugas (*Staff On-Duty*).
 - **Saraf Sensorik (Telemetri `/dc/monitoring`)**: Memantau suhu dan kelembapan rak berbasis standar termal internasional ASHRAE TC 9.9 menggunakan ambang batas ganda (*Dual Thresholds*).
 - **Mata Visual (Pengawasan CCTV `/dc/cctv`)**: Melakukan verifikasi visual jarak jauh (*Remote Hands efficiency*) terhadap kondisi fisik lorong rak tanpa perlu membuka pintu fisik ruang server.
@@ -96,6 +98,7 @@ Alur data telemetri dan CCTV memisahkan secara tegas antara jalur kontrol (*Cont
 
 ### 3.2. Deduplikasi Alarm (*Alarm Storm Prevention*)
 Mekanisme deduplikasi pada `MonitoringService::evaluateThreshold()` mencegah terjadinya banjir notifikasi:
+
 ```php
 $existingAlarm = Alarm::where('site_id', $reading->site_id)
     ->where('rack_id', $reading->rack_id)
@@ -119,6 +122,7 @@ if (! $existingAlarm) {
 
 ### 3.3. Keamanan Aliran Video (*Zero-Trust Stream Security*)
 Kredensial kamera yang tersimpan pada `source_url` (berisi kata sandi kamera lokal) diisolasi secara ketat:
+
 1. Kolom `source_url` dienkripsi pada tingkat *database record*.
 2. Pada lapisan presentasi, `CctvCameraResource` secara eksplisit membuang atribut `source_url` dari respon JSON dan hanya menyediakan `playback_url` publik.
 3. Fitur *probe* memblokir alamat IP *private loopback* dan alamat metadata layanan cloud (`169.254.169.254`) guna mencegah eksploitasi *Server-Side Request Forgery* (SSRF).

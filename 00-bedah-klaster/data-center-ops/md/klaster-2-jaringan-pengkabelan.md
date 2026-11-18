@@ -9,12 +9,14 @@
 Apabila Klaster 1 memodelkan hierarki spasial fisik gedung data center (*spatial containment*), maka **Klaster 2 memodelkan tulang punggung konektivitas aktif, pasif, dan pengalamatan logika (*active hardware, passive cabling, & logical IP addressing*)**.
 
 Di lingkungan pusat data komersial, pencatatan konektivitas tidak dapat direduksi sebagai sekadar "kabel terpasang". Ketiadaan manajemen konektivitas yang granular memicu serangkaian risiko operasional:
+
 1. **Ketidaksinkronan Perangkat Aktif dan Kabel Pasif**: Teknisi lapangan mengonfigurasi jalur serat optik (*Cross-Connect*) atau panel terminasi (*OTB*), namun port antarmuka pada unit server pelanggan tidak tercatat secara presisi, sehingga menyulitkan pelacakan gangguan (*troubleshooting*).
 2. **Kekacauan Jalur Kabel (*Cable Spaghetti & Ghost Cables*)**: Kabel penghubung antar-rak yang tidak memiliki nomor tag resmi sering kali ditinggalkan di dalam *cable tray* setelah kontrak pelanggan berakhir, mengakibatkan pemborosan kapasitas jalur kabel fisik.
 3. **Tabrakan Alokasi Pengalamatan (*IP Conflict & Blacklisting*)**: Pengelolaan alamat IP tanpa sistem terpadu berisiko memunculkan duplikasi penetapan IP publik atau pengalokasian IP yang masih terikat pada kontrak aktif pelanggan lain.
 4. **Pemisahan Catatan Fisik dan Finansial Aset**: Server bernilai ratusan juta rupiah tercatat di ruang data center tanpa terhubung ke sistem pembukuan nilai aset tetap perusahaan (*Fixed Assets*).
 
 Untuk menyelesaikan persoalan tersebut, arsitektur modul DataCenterOps memisahkan konektivitas ke dalam lima lapisan domain terpadu:
+
 - **Perangkat Keras Aktif (*Active Compute & Switching*)**: Server, Core Switch, Router, Firewall, PDU, dan Storage.
 - **Port Fisik Perangkat (*Network Interface Ports*)**: Kartu jaringan fisik bawaan perangkat (`eth0`, `sfp-sfpplus1`, `mgmt`) beserta alamat MAC, kecepatan tautan, dan penugasan segmen VLAN.
 - **Pengkabelan Pasif Lintas Rak & MMR (*Cross-Connect Cabling*)**: Kabel fisik (UTP Cat6 atau Serat Optik Single-mode/Multi-mode) yang melintasi lorong rak atau menuju *Meet-Me Room* (MMR). Ini merupakan **produk komersial yang dijual dan ditagih bulanan (*recurring fee*) kepada pelanggan**.
@@ -47,33 +49,38 @@ Alur data pada Klaster 2 mengintegrasikan perangkat aktif, pengkabelan pasif, po
 
 ### 2.1. Alur 1: Pendaftaran Perangkat & Guard Anti-Tumpuk Slot U
 Saat operator mendaftarkan unit server fisik baru ke dalam lemari rak:
+
 1. **Frontend**: Antarmuka `DeviceDetailPage.tsx` mengeksekusi mutasi `useCreateDevice()`.
 2. **Endpoint**: `POST /api/v1/data-center-ops/devices`.
 3. **Validasi Layanan (`DeviceService::assertSlotFree`)**:
    - Sistem mengalkulasi interval slot fisik: `start_u = rack_position_u` hingga `end_u = start_u + u_height - 1`.
    - Apabila perangkat ditautkan pada kontrak pelanggan tertentu, sistem memverifikasi bahwa slot berada dalam rentang alokasi kontrak yang sah (`RackAllocation` aktif):
-     ```php
-     $hasValidAlloc = RackAllocation::where('contract_id', $contractId)
-         ->where('rack_id', $rackId)
-         ->where('start_u', '<=', $startU)
-         ->where('end_u', '>=', $endU)
-         ->whereIn('status', ['active', 'reserved'])
-         ->exists();
-     ```
+
+```php
+$hasValidAlloc = RackAllocation::where('contract_id', $contractId)
+    ->where('rack_id', $rackId)
+    ->where('start_u', '<=', $startU)
+    ->where('end_u', '>=', $endU)
+    ->whereIn('status', ['active', 'reserved'])
+    ->exists();
+```
+
    - Sistem memastikan tidak ada perangkat fisik lain yang menduduki irisan slot tersebut:
-     ```php
-     $conflict = Device::where('rack_id', $rackId)
-         ->where('id', '!=', $deviceId)
-         ->whereNotNull('rack_position_u')
-         ->where(function ($q) use ($startU, $endU) {
-             $q->where('rack_position_u', '<=', $endU)
-               ->where(DB::raw('COALESCE(rack_position_u_end, rack_position_u)'), '>=', $startU);
-         })
-         ->exists();
-     if ($conflict) {
-         throw new \RuntimeException("Slot U{$startU}-U{$endU} di rak ini sudah ditempati oleh perangkat lain.");
-     }
-     ```
+
+```php
+$conflict = Device::where('rack_id', $rackId)
+    ->where('id', '!=', $deviceId)
+    ->whereNotNull('rack_position_u')
+    ->where(function ($q) use ($startU, $endU) {
+        $q->where('rack_position_u', '<=', $endU)
+          ->where(DB::raw('COALESCE(rack_position_u_end, rack_position_u)'), '>=', $startU);
+    })
+    ->exists();
+if ($conflict) {
+    throw new \RuntimeException("Slot U{$startU}-U{$endU} di rak ini sudah ditempati oleh perangkat lain.");
+}
+```
+
 4. **Penyimpanan**: Perangkat tersimpan pada `dc_device`. Nilai daya listrik (`power_watt`) otomatis teragregasi pada ringkasan beban rak di `RackController::index`.
 
 ### 2.2. Alur 2: Manajemen Master Port Jaringan & Keunikan Berlingkup
@@ -86,10 +93,12 @@ Saat operator mendaftarkan unit server fisik baru ke dalam lemari rak:
 3. **Integritas Basis Data (`dc_network_port`)**:
    `UNIQUE KEY ('device_id', 'port_name')`  
    Nama port seperti `eth0` atau `mgmt` dapat eksis di ribuan unit perangkat berbeda, namun wajib unik mutlak di dalam unit fisik perangkat yang sama.
+
 4. **Validasi Atribut**: Controller memverifikasi format alamat fisik `mac_address` (standar IEEE 802) dan alamat logika `ip_address` sebelum disimpan ke basis data.
 
 ### 2.3. Alur 3: Cross-Connect Lintas Rak & Meet-Me Room
 Kabel *Cross-Connect* merepresentasikan produk infrastruktur pasif yang dijual kepada penyewa (*tenant*):
+
 1. **Model Titik Ujung Fleksibel (*Hybrid Endpoints*)**:
    - Sisi Asal (*Side A*): Dapat ditautkan ke port formal `port_a_id` (`dc_network_port`) atau lokasi tekstual bebas `source_location` + `source_port`.
    - Sisi Tujuan (*Side B*): Dapat ditautkan ke port formal `port_b_id`, port terminasi optik internal `destination_otb_port_id` (`dc_otb_port`), atau lokasi luar sistem `destination_location` + `destination_port` (contoh: *MMR Rack 05 - Patch Panel Telkom Port 12*).
@@ -100,38 +109,43 @@ Kabel *Cross-Connect* merepresentasikan produk infrastruktur pasif yang dijual k
 1. **Registrasi Panel OTB**: Operator mendaftarkan kotak OTB baru dengan kapasitas port fisik (contoh: `port_count = 48` atau `port_count = 256`).
 2. **Generasi Otomatis Baris Port (`OtbService::create`)**:
    Sistem mengeksekusi operasi massal (*bulk creation*) di dalam transaksi basis data:
-   ```php
-   for ($i = 1; $i <= $portCount; $i++) {
-       OtbPort::create([
-           'organization_id' => $otb->organization_id,
-           'otb_id'          => $otb->id,
-           'port_number'     => $i,
-           'status'          => 'available',
-       ]);
-   }
-   ```
+
+```php
+for ($i = 1; $i <= $portCount; $i++) {
+    OtbPort::create([
+        'organization_id' => $otb->organization_id,
+        'otb_id'          => $otb->id,
+        'port_number'     => $i,
+        'status'          => 'available',
+    ]);
+}
+```
+
 3. **Siklus Hidup Dapat Digunakan Kembali (*Reusable*)**: Saat kontrak penyewa berakhir, metode `OtbService::releasePort()` mengembalikan status port menjadi `available` tanpa menghapus data historisnya.
 
 ### 2.5. Alur 5: Kalkulasi Alamat IPAM Biner (`ip2long` & `long2ip`)
 Modul IPAM menyediakan manajemen alokasi alamat IP publik dan privat:
+
 1. **Registrasi Subnet**: Operator mendaftarkan blok CIDR (contoh: `103.10.20.0/24`).
 2. **Algoritma Translasi Biner Host (`IpamService::generateAddressesForSubnet`)**:
    Untuk subnet IPv4 (dibatasi maksimal prefix `/22` atau 1.024 host per blok):
-   ```php
-   [$network, $prefixStr] = explode('/', $subnet->cidr);
-   $prefix = (int) $prefixStr;
-   $networkLong = ip2long($network);
-   $hostCount = 2 ** (32 - $prefix); // contoh: 2^(32-24) = 256 alamat
 
-   for ($i = 0; $i < $hostCount; $i++) {
-       $ip = long2ip($networkLong + $i);
-       IpAddress::create([
-           'subnet_id'  => $subnet->id,
-           'ip_address' => $ip,
-           'status'     => 'available',
-       ]);
-   }
-   ```
+```php
+[$network, $prefixStr] = explode('/', $subnet->cidr);
+$prefix = (int) $prefixStr;
+$networkLong = ip2long($network);
+$hostCount = 2 ** (32 - $prefix); // contoh: 2^(32-24) = 256 alamat
+
+for ($i = 0; $i < $hostCount; $i++) {
+    $ip = long2ip($networkLong + $i);
+    IpAddress::create([
+        'subnet_id'  => $subnet->id,
+        'ip_address' => $ip,
+        'status'     => 'available',
+    ]);
+}
+```
+
 3. **Alokasi Alamat**: Alamat IP individual dialokasikan ke pelanggan (`customer_id`), perangkat jaringan (`device_id`), atau baris kontrak layanan (`contract_service_id`).
 
 ---
@@ -157,6 +171,7 @@ Modul IPAM menyediakan manajemen alokasi alamat IP publik dan privat:
 
 ### 3.2. Integrasi ke Modul Finansial Fixed Assets (`fin_fa_asset`)
 Di dalam sistem MSDC ERP, perangkat server memiliki dua dimensi pencatatan:
+
 - **Dimensi Operasional Fisik (DataCenterOps - Team 3)**: Menunjukkan posisi letak rak, nomor slot U, penyerapan daya listrik, dan port jaringan aktif.
 - **Dimensi Akuntansi Finansial (Fixed Asset Management - Team 4)**: Menunjukkan tanggal perolehan, harga beli (*purchase cost*), metode penyusutan (*depreciation*), masa manfaat, dan akumulasi nilai buku (*book value*).
 
@@ -166,6 +181,7 @@ Kolom `dc_device.fixed_asset_id` menghubungkan kedua dimensi tersebut, memungkin
 Menghapus blok subnet yang masih memiliki alamat IP terpakai dapat memutuskan rute jaringan dan kontrak layanan pelanggan aktif.
 
 Pada metode `IpamService::deleteSubnet()`:
+
 ```php
 $activeAllocations = $subnet->addresses()
     ->whereIn('status', ['allocated', 'reserved'])
@@ -177,6 +193,7 @@ if ($activeAllocations > 0) {
     );
 }
 ```
+
 Penghapusan hanya diizinkan apabila seluruh alamat IP di dalam subnet tersebut sudah berstatus `available`.
 
 ---
