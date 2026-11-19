@@ -89,3 +89,45 @@ Berikut adalah peta jalan pembedahan ke-5 klaster Data Center Operations:
 | `npm run build:magang` | `laporan_akhir/` | Mengompilasi dokumen formal Laporan Magang Industri. |
 | `npm run build:pkl` | `laporan_akhir/` | Mengompilasi dokumen formal Laporan PKL. |
 | `npm run build:all` | `laporan_akhir/` | Mengompilasi seluruh dokumen proyek. |
+
+---
+
+## 5. PROTOKOL HUMANIZER & STANDAR PENULISAN NARASI AKADEMIK (WAJIB)
+
+Setiap kali Agent menulis atau menyunting draf narasi laporan pada direktori `02-laporan-pkl/` maupun `01-laporan-magang/`, Agent **WAJIB secara ketat menerapkan seluruh prinsip skill Humanizer** yang diadopsi dari `laporan-generator/.agents/`:
+
+### 5.1. Anti-Klise AI & Eliminasi Frasa Pembuka Generik
+- **DILARANG KERAS** membuka paragraf dengan klise pembuka khas AI, seperti:
+  - ❌ *"Dalam era digitalisasi dan globalisasi yang berkembang pesat..."*
+  - ❌ *"Tidak dapat dipungkiri bahwa teknologi memegang peranan krusial..."*
+  - ❌ *"Hal ini tentu sangat penting untuk diperhatikan..."*
+  - ❌ *"Lanskap teknologi modern menuntut integrasi komprehensif..."*
+- **WAJIB**: Buka paragraf langsung dengan **fakta empiris, masalah teknis nyata, data operasional, standar industri, atau hubungan sebab-akibat yang konkret**.
+
+### 5.2. Moderasi Kata Penghubung Formulaik
+Hindari penggunaan kata transisi yang monoton dan mekanis secara beruntun (*formulaic starters*) di awal kalimat, seperti: *"Selain itu"*, *"Namun demikian"*, *"Oleh karena itu"*, *"Di sisi lain"*, *"Dengan demikian"*. Variasikan struktur anak kalimat dan posisi konjungsi secara alami di tengah kalimat.
+
+### 5.3. Variasi Ritme & Panjang Kalimat Alami (*Burstiness*)
+Teks narasi manusia yang berkualitas tinggi memiliki variasi panjang kalimat (*sentence burstiness*):
+- Gabungkan kalimat pendek-tegas (10–18 kata) yang memuat kesimpulan atau aksi utama dengan kalimat majemuk teknis (22–35 kata) yang memuat penjelasan mekanisme rekayasa.
+- Hindari deretan paragraf yang memiliki panjang kalimat seragam (*flat cadence*).
+
+### 5.4. Sudut Pandang Objektif & Sebutan Formal
+- Gunakan sudut pandang objektif impersonal atau kalimat pasif (*"Sistem ini dirancang...", "Pengujian dilakukan melalui..."*).
+- Apabila konteks mengharuskan penyebutan subjek pelaku (khususnya pada Kata Pengantar dan Bab II.3), **HANYA gunakan sebutan formal "penulis"**. **DILARANG KERAS** menggunakan kata ganti orang pertama/kedua (*"saya"*, *"aku"*, *"kami"*, *"kita"*, *"kamu"*).
+
+### 5.5. Tipografi Bahasa Indonesia Baku (EYD V / PUEBI & KBBI)
+- Seluruh istilah asing, istilah teknis bahasa Inggris, dan nama properti kode pemrograman **WAJIB dicetak miring (*italic*)**, misalnya: *multi-tenancy*, *pessimistic locking*, *middleware*, *bearer token*, *cross-connect*, *rate limiting*, *payload*.
+- Gunakan kosakata baku Bahasa Indonesia (contoh: *antarmuka* bukan *interface*, *peladen* atau *server*, *pencacah* bukan *counter*, *kuorum* bukan *quorum*).
+
+### 5.6. Penomoran Heading Otomatis (Heading Hygiene)
+Engine kompilasi (`template.typ` & `docx.lua`) menghitung penomoran bab dan sub-bab secara otomatis berdasarkan preset kampus aktif (`upn-plk`):
+- Level 1: `# JUDUL BAB` (Contoh: `# PENDAHULUAN` — **JANGAN** tulis manual `# BAB I PENDAHULUAN`).
+- Level 2: `## Sub-Bab` (Contoh: `## Latar Belakang` — **JANGAN** tulis manual `## I.1 Latar Belakang`).
+- Level 3: `### Sub-Sub-Bab` (Contoh: `### Identifikasi Masalah` — **JANGAN** tulis manual `### I.1.1 Identifikasi Masalah`).
+- Khusus halaman depan/belakang tanpa nomor bab (Kata Pengantar, Referensi, Lampiran), gunakan penanda *unnumbered*: `# KATA PENGANTAR {-}`.
+
+### 5.7. Larangan Karakter Unicode Box-Drawing
+- **DILARANG KERAS** menggunakan karakter gambar kotak Unicode (`├`, `─`, `│`, `┌`, `└`) di dalam tabel atau diagram karena merusak parser Pandoc/Typst.
+- Seluruh tabel wajib menggunakan format standar *Markdown Pipe Table* (`| Kolom 1 | Kolom 2 |`).
+

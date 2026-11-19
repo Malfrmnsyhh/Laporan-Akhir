@@ -458,13 +458,17 @@ function Pandoc(doc)
         "CoverLecturer"
       )
     end
+    local logo_file = meta_str(meta, "logo")
+    if logo_file == "" then
+      logo_file = "logo.jpg"
+    end
     local logo_width = meta_str(meta, "cover_logo_width")
     if logo_width == "" then
       logo_width = "4cm"
     end
     blocks[#blocks + 1] = spacer(640)
     blocks[#blocks + 1] = pandoc.Div(
-      { pandoc.Para({ pandoc.Image({}, "logo.jpg", "", pandoc.Attr("", {}, { width = logo_width })) }) },
+      { pandoc.Para({ pandoc.Image({}, logo_file, "", pandoc.Attr("", {}, { width = logo_width })) }) },
       pandoc.Attr("", {}, { ["custom-style"] = "CoverImage" })
     )
     blocks[#blocks + 1] = spacer(640)

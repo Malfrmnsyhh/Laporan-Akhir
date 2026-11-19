@@ -340,7 +340,7 @@ $endif$
 
 #v(1fr)
 #align(center)[
-  #image("logo.jpg", width: $if(cover_logo_width)$$cover_logo_width$$else$4cm$endif$)
+  #image("$if(logo)$$logo$$else$logo.jpg$endif$", width: $if(cover_logo_width)$$cover_logo_width$$else$4cm$endif$)
 ]
 #v(1fr)
 

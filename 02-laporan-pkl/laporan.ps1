@@ -185,18 +185,39 @@ function Cmd-Build-PDF {
         throw "Typst tidak ditemukan di PATH. Jalankan '.\laporan.ps1 setup' atau pasang Typst terlebih dahulu."
     }
 
-    $inputFiles = @("cover.md") + (Get-ChildItem -Path "chapters" -Filter "bab*.md" | Sort-Object Name | ForEach-Object { $_.FullName })
+    $orderedChapters = @(
+        "bab1-pendahuluan.md",
+        "bab2-organisasi-mitra.md",
+        "bab3-pelaksanaan-proyek.md",
+        "bab4-rekognisi-matkul.md",
+        "bab5-penutup.md",
+        "referensi.md",
+        "bab6-lampiran-logbook.md"
+    )
+    $chapterFiles = @()
+    foreach ($chap in $orderedChapters) {
+        $chapPath = Join-Path "chapters" $chap
+        if (Test-Path $chapPath) {
+            $chapterFiles += (Resolve-Path $chapPath).Path
+        }
+    }
+    $otherFiles = Get-ChildItem -Path "chapters" -Filter "*.md" | Where-Object { $orderedChapters -notcontains $_.Name } | Sort-Object Name | ForEach-Object { $_.FullName }
+    $inputFiles = @("cover.md") + $chapterFiles + $otherFiles
+
     $presetOpt = ""
     if (Test-Path "metadata.yml") {
         $content = Get-Content "metadata.yml" -Raw
         if ($content -match "(?:preset|margin_preset)\s*:\s*[`"']?([a-zA-Z0-9_-]+)[`"']?") {
             $presetName = $matches[1]
-            $presetFile = Join-Path $presetsDir "$presetName.yml"
+            $localPreset = Join-Path $PSScriptRoot "presets\$presetName.yml"
+            $presetFile = if (Test-Path $localPreset) { $localPreset } else { Join-Path $presetsDir "$presetName.yml" }
             if (Test-Path $presetFile) {
                 $presetOpt = "--metadata-file=$presetFile"
             }
         }
     }
+
+    $cslOpt = if (Test-Path "ieee.csl") { "ieee.csl" } else { "apa.csl" }
 
     $pandocArgs = @()
     $pandocArgs += $inputFiles
@@ -205,7 +226,7 @@ function Cmd-Build-PDF {
     $pandocArgs += "--metadata-file=metadata.yml"
     $pandocArgs += "--citeproc"
     $pandocArgs += "--bibliography=references.bib"
-    $pandocArgs += "--csl=apa.csl"
+    $pandocArgs += "--csl=$cslOpt"
     $pandocArgs += "--metadata=reference-section-title=DAFTAR PUSTAKA"
     $pandocArgs += "--top-level-division=chapter"
     $pandocArgs += "--pdf-engine=typst"
@@ -239,18 +260,39 @@ function Cmd-Build-DOCX {
         throw "Python 3 dibutuhkan untuk memproses DOCX."
     }
 
-    $inputFiles = @("cover.md") + (Get-ChildItem -Path "chapters" -Filter "bab*.md" | Sort-Object Name | ForEach-Object { $_.FullName })
+    $orderedChapters = @(
+        "bab1-pendahuluan.md",
+        "bab2-organisasi-mitra.md",
+        "bab3-pelaksanaan-proyek.md",
+        "bab4-rekognisi-matkul.md",
+        "bab5-penutup.md",
+        "referensi.md",
+        "bab6-lampiran-logbook.md"
+    )
+    $chapterFiles = @()
+    foreach ($chap in $orderedChapters) {
+        $chapPath = Join-Path "chapters" $chap
+        if (Test-Path $chapPath) {
+            $chapterFiles += (Resolve-Path $chapPath).Path
+        }
+    }
+    $otherFiles = Get-ChildItem -Path "chapters" -Filter "*.md" | Where-Object { $orderedChapters -notcontains $_.Name } | Sort-Object Name | ForEach-Object { $_.FullName }
+    $inputFiles = @("cover.md") + $chapterFiles + $otherFiles
+
     $presetOpt = ""
     if (Test-Path "metadata.yml") {
         $content = Get-Content "metadata.yml" -Raw
         if ($content -match "(?:preset|margin_preset)\s*:\s*[`"']?([a-zA-Z0-9_-]+)[`"']?") {
             $presetName = $matches[1]
-            $presetFile = Join-Path $presetsDir "$presetName.yml"
+            $localPreset = Join-Path $PSScriptRoot "presets\$presetName.yml"
+            $presetFile = if (Test-Path $localPreset) { $localPreset } else { Join-Path $presetsDir "$presetName.yml" }
             if (Test-Path $presetFile) {
                 $presetOpt = "--metadata-file=$presetFile"
             }
         }
     }
+
+    $cslOpt = if (Test-Path "ieee.csl") { "ieee.csl" } else { "apa.csl" }
 
     $tmpDocx = [System.IO.Path]::GetTempFileName() + ".docx"
     $sectDocx = [System.IO.Path]::GetTempFileName() + ".docx"
@@ -262,7 +304,7 @@ function Cmd-Build-DOCX {
         $pandocArgs += "--metadata-file=metadata.yml"
         $pandocArgs += "--citeproc"
         $pandocArgs += "--bibliography=references.bib"
-        $pandocArgs += "--csl=apa.csl"
+        $pandocArgs += "--csl=$cslOpt"
         $pandocArgs += "--metadata=reference-section-title=DAFTAR PUSTAKA"
         $pandocArgs += "--top-level-division=chapter"
         $pandocArgs += "--reference-doc=reference.docx"

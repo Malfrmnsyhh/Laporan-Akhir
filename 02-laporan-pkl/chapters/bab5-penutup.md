@@ -2,24 +2,25 @@
 
 ## Kesimpulan
 
-Berdasarkan perancangan, implementasi, dan serangkaian pengujian yang telah dilakukan pada proyek **Laporan Generator**, dapat ditarik beberapa simpulan utama:
-
-1. **Efektivitas Paradigma Pemisahan Konten dan Penyajian** --- Penerapan format teks Markdown memisahkan isi naskah dari kerumitan tata letak visual. Pendekatan ini terbukti meningkatkan konsentrasi penulis secara terukur. Masalah pergeseran tata letak berhasil dieliminasi. Kolaborasi tim melalui Git menjadi jauh lebih praktis.
-
-2. **Keunggulan Engine Typesetting Typst** --- Typst memangkas ukuran instalasi dari 4.5 GB menjadi 25 MB saja. Kompilasi tuntas dalam waktu sub-detik. Kualitas tipografi tetap presisi dan memenuhi standar akademik nasional.
-
-3. **Keberhasilan Solusi Multi-Pass DOCX** --- Pendekatan multi-pass menggabungkan filter Pandoc Lua, injeksi OpenXML, dan sinkronisasi nomor halaman via LibreOffice. Hasilnya berupa dokumen Word resmi dengan seksi terpisah. Penomoran romawi dan arab tertata rapi.
-
-4. **Fleksibilitas Sistem Preset Kampus** --- Kehadiran preset deklaratif memudahkan sivitas akademika menyesuaikan margin dokumen secara instan tanpa menyunting template inti. Skema ini adaptif.
-
-5. **Keandalan dan Keterulangan Sistem** --- Dukungan konfigurasi Nix menjamin lingkungan build identik lintas sistem operasi. Seluruh pengujian lolos tanpa galat.
+*(Panduan Penulisan Sub-Bab V.1)*:
+Bagian ini menyimpulkan seluruh proses dan hasil yang diperoleh selama pelaksanaan program PLK di PT Jawa Pos Media Televisi (JTV):
+1. **Kesimpulan Proses Pelaksanaan PLK**:
+   - Program magang mandiri di PT Jawa Pos Media Televisi telah terlaksana dengan baik sesuai linimasa dan metodologi pengembangan perangkat lunak yang disepakati.
+   - Kolaborasi tim pengembang dan bimbingan mentor industri memberikan pemahaman mendalam mengenai standar rekayasa perangkat lunak enterprise dan dinamika kerja di industri media dan data center.
+2. **Kesimpulan Substansi Teknis**:
+   - Modul *Data Center Operations* berhasil dirancang dan diimplementasikan secara terintegrasi mencakup 5 klaster fungsional (Fasilitas Fisik, Jaringan & Pengkabelan, Telemetri Lingkungan, Operasional Dokumen, dan Keamanan Akses Fisik).
+   - Penggunaan arsitektur React 18 SPA dan Laravel 11 Modular terbukti mampu memberikan performa tinggi, modularitas kode yang rapi, serta kemudahan pemeliharaan sistem jangka panjang.
+   - Penerapan mekanisme *pessimistic locking* (`lockForUpdate`) dan transaksi atomik berhasil memecahkan persoalan *race condition* pada alokasi lemari rak dan penomoran dokumen otomatis.
+   - Isolasi data *multi-tenancy* terbukti kokoh melalui penegakan global scope `ScopesOrganization` dan validasi header `X-Organization-Id`.
 
 ## Saran
 
-Beberapa peluang pengembangan lanjutan yang direkomendasikan untuk memperluas manfaat proyek ini meliputi:
-
-1. **Antarmuka Web Interaktif** --- Membangun antarmuka berbasis peramban agar pengguna dapat menyunting naskah tanpa instalasi terminal lokal.
-
-2. **Ekspansi Koleksi Preset Kampus** --- Menambahkan format resmi untuk perguruan tinggi lain di Indonesia secara berkala.
-
-3. **Penyempurnaan Integrasi Editor** --- Menyediakan ekstensi editor dengan fitur pelengkapan otomatis sitasi BibTeX dan live preview.
+*(Panduan Penulisan Sub-Bab V.2)*:
+Bagian ini merumuskan rekomendasi perbaikan dan pengembangan sistem untuk masa mendatang:
+1. **Saran bagi Proses Pelaksanaan PLK & Institusi Mitra**:
+   - Mempertahankan dan memperluas program kemitraan magang industri berbasis proyek nyata antara Program Studi Informatika UPN "Veteran" Jawa Timur dan PT Jawa Pos Media Televisi.
+   - Memberikan alokasi waktu tambahan pada tahap pengujian beban sistem (*load testing*) di lingkungan staging sebelum rilis produksi.
+2. **Saran bagi Pengembangan Teknis Sistem ke Depan**:
+   - Mengembangkan integrasi telemetri otomatis menggunakan protokol industri IoT seperti SNMP (*Simple Network Management Protocol*) atau Modbus TCP untuk membaca sensor daya PDU (*Power Distribution Unit*) dan sensor suhu rak secara langsung tanpa input gateway manual.
+   - Mengintegrasikan pemindai kode QR pada modul *Visitor Pass* dengan gerbang fisik (*turnstile barrier gate*) dan kartu akses RFID agar proses verifikasi di pos satpam berjalan sepenuhnya otomatis.
+   - Menambahkan fitur pelacakan rute pengkabelan serat optik interaktif berbasis visualisasi diagram topologi canvas (*interactive network topology graph*).
