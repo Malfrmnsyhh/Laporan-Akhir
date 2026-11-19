@@ -269,22 +269,26 @@ function Header(el)
   elseif el.level == 2 then
     sub = sub + 1
     subsub = 0
+    local bnum = format_chapter_number(bab)
     local sep2 = sub_dot and ". " or " "
+    local num_str = bnum .. "." .. sub .. sep2
     toc_entries[#toc_entries + 1] = {
       level = 2,
       id = el.identifier,
-      text = bab .. "." .. sub .. sep2 .. title,
+      text = num_str .. title,
     }
-    el.content = pandoc.Str(bab .. "." .. sub .. sep2 .. title)
+    el.content = pandoc.Str(num_str .. title)
   elseif el.level == 3 then
     subsub = subsub + 1
+    local bnum = format_chapter_number(bab)
     local sep3 = subsub_dot and ". " or " "
+    local num_str = bnum .. "." .. sub .. "." .. subsub .. sep3
     toc_entries[#toc_entries + 1] = {
       level = 3,
       id = el.identifier,
-      text = bab .. "." .. sub .. "." .. subsub .. sep3 .. title,
+      text = num_str .. title,
     }
-    el.content = pandoc.Str(bab .. "." .. sub .. "." .. subsub .. sep3 .. title)
+    el.content = pandoc.Str(num_str .. title)
   end
   return el
 end
@@ -425,6 +429,8 @@ function Pandoc(doc)
     return doc
   end
 
+  blocks[#blocks + 1] = para({ pandoc.Strong(pandoc.Str("LAPORAN AKHIR")) }, "CoverTitle")
+  blocks[#blocks + 1] = para({ pandoc.Strong(pandoc.Str("MAGANG MANDIRI")) }, "CoverSubtitle")
   if title ~= "" then
     local tlines = balance_title(string.upper(title))
     local content = {}
@@ -435,80 +441,50 @@ function Pandoc(doc)
       content[#content + 1] = pandoc.Str(l)
     end
     blocks[#blocks + 1] = para(content, "CoverTitle")
-    if subtitle ~= "" then
-      blocks[#blocks + 1] = para({ pandoc.Str(string.upper(subtitle)) }, "CoverSubtitle")
-    end
-    if course ~= "" then
-      blocks[#blocks + 1] = para({ pandoc.Strong(pandoc.Str(course)) }, "CoverCourse")
-    end
-    local hide_lecturer = meta_str(meta, "cover_hide_lecturer") == "true" or meta_str(meta, "cover_show_lecturer") == "false"
-    if lecturer ~= "" and not hide_lecturer then
-      local lecturer_lbl = meta_str(meta, "lecturer_label")
-      if lecturer_lbl == "" then
-        lecturer_lbl = "Dosen Pengampu: "
-      else
-        if not lecturer_lbl:match(":%s*$") then
-          lecturer_lbl = lecturer_lbl .. ": "
-        elseif not lecturer_lbl:match("%s$") then
-          lecturer_lbl = lecturer_lbl .. " "
-        end
-      end
-      blocks[#blocks + 1] = para(
-        { pandoc.Str(lecturer_lbl), pandoc.Strong(pandoc.Str(lecturer)) },
-        "CoverLecturer"
-      )
-    end
-    local logo_file = meta_str(meta, "logo")
-    if logo_file == "" then
-      logo_file = "logo.jpg"
-    end
-    local logo_width = meta_str(meta, "cover_logo_width")
-    if logo_width == "" then
-      logo_width = "4cm"
-    end
-    blocks[#blocks + 1] = spacer(640)
-    blocks[#blocks + 1] = pandoc.Div(
-      { pandoc.Para({ pandoc.Image({}, logo_file, "", pandoc.Attr("", {}, { width = logo_width })) }) },
-      pandoc.Attr("", {}, { ["custom-style"] = "CoverImage" })
-    )
-    blocks[#blocks + 1] = spacer(640)
   end
+  local pks = meta_str(meta, "pks_number")
+  if pks == "" then pks = "No. PKS: 015/UN63.7/PKS/2024" end
+  blocks[#blocks + 1] = para({ pandoc.Str(pks) }, "CoverLine")
 
+  local logo_file = meta_str(meta, "logo")
+  if logo_file == "" then logo_file = "gambar/logo.png" end
+  local logo_width = meta_str(meta, "cover_logo_width")
+  if logo_width == "" then logo_width = "4.5cm" end
+  blocks[#blocks + 1] = spacer(400)
+  blocks[#blocks + 1] = pandoc.Div(
+    { pandoc.Para({ pandoc.Image({}, logo_file, "", pandoc.Attr("", {}, { width = logo_width })) }) },
+    pandoc.Attr("", {}, { ["custom-style"] = "CoverImage" })
+  )
+  blocks[#blocks + 1] = spacer(400)
+
+  blocks[#blocks + 1] = para({
+    pandoc.Str("Diajukan untuk memenuhi persyaratan kelulusan"),
+    pandoc.LineBreak(),
+    pandoc.Str("Program Magang Mandiri")
+  }, "CoverLine")
+  blocks[#blocks + 1] = spacer(200)
+  blocks[#blocks + 1] = para({ pandoc.Str("oleh :") }, "CoverLine")
   local authors = meta["author"]
   if authors ~= nil then
     local author_list = {}
     if authors[1] ~= nil then
-      for _, a in ipairs(authors) do
-        author_list[#author_list + 1] = a
-      end
+      for _, a in ipairs(authors) do author_list[#author_list + 1] = a end
     else
       author_list[#author_list + 1] = authors
     end
-    if #author_list > 0 then
-      blocks[#blocks + 1] = para({ pandoc.Str("Disusun oleh:") }, "CoverLine")
-      for _, a in ipairs(author_list) do
-        local name = pandoc.utils.stringify(a["name"] or a)
-        local nim = pandoc.utils.stringify(a["nim"] or "")
-        blocks[#blocks + 1] = para({ pandoc.Strong(pandoc.Str(name)) }, "CoverName")
-        if nim ~= "" then
-          blocks[#blocks + 1] = para({ pandoc.Str(nim) }, "CoverLine")
-        end
-      end
+    for _, a in ipairs(author_list) do
+      local name = pandoc.utils.stringify(a["name"] or a)
+      local nim = pandoc.utils.stringify(a["nim"] or "")
+      local line_text = name .. (nim ~= "" and (" / " .. nim) or "")
+      blocks[#blocks + 1] = para({ pandoc.Str(line_text) }, "CoverLine")
     end
   end
 
-  if faculty ~= "" or institution ~= "" or year ~= "" then
-    blocks[#blocks + 1] = spacer(640)
-    if faculty ~= "" then
-      blocks[#blocks + 1] = para({ pandoc.Str(string.upper(faculty)) }, "CoverInstitution")
-    end
-    if institution ~= "" then
-      blocks[#blocks + 1] = para({ pandoc.Str(string.upper(institution)) }, "CoverInstitution")
-    end
-    if year ~= "" then
-      blocks[#blocks + 1] = para({ pandoc.Str(string.upper(year)) }, "CoverInstitution")
-    end
-  end
+  blocks[#blocks + 1] = spacer(400)
+  blocks[#blocks + 1] = para({ pandoc.Strong(pandoc.Str("PROGRAM STUDI INFORMATIKA")) }, "CoverInstitution")
+  blocks[#blocks + 1] = para({ pandoc.Strong(pandoc.Str("FAKULTAS ILMU KOMPUTER")) }, "CoverInstitution")
+  blocks[#blocks + 1] = para({ pandoc.Strong(pandoc.Str('UNIVERSITAS PEMBANGUNAN NASIONAL "VETERAN" JAWA TIMUR')) }, "CoverInstitution")
+  blocks[#blocks + 1] = para({ pandoc.Strong(pandoc.Str("2026")) }, "CoverInstitution")
 
   -- Section break (Next Page) penutup cover: tanpa footer/nomor halaman
   blocks[#blocks + 1] = pandoc.RawBlock(
@@ -528,35 +504,43 @@ function Pandoc(doc)
     blocks[#blocks + 1] = pandoc.Header(1, { pandoc.Str("LEMBAR PENGESAHAN") }, pandoc.Attr("lembar-pengesahan", { "unnumbered" }, {}))
     if title ~= "" then
       blocks[#blocks + 1] = para({ pandoc.Strong(pandoc.Str(string.upper(title))) }, "CoverLine")
+      blocks[#blocks + 1] = para({ pandoc.Str("Di PT Jawa Pos Media Televisi (JTV)") }, "CoverLine")
     end
+    blocks[#blocks + 1] = spacer(200)
+    blocks[#blocks + 1] = para({ pandoc.Str("oleh :") }, "CoverLine")
+    if authors ~= nil then
+      local author_list = {}
+      if authors[1] ~= nil then
+        for _, a in ipairs(authors) do author_list[#author_list + 1] = a end
+      else
+        author_list[#author_list + 1] = authors
+      end
+      for _, a in ipairs(author_list) do
+        local name = pandoc.utils.stringify(a["name"] or a)
+        local nim = pandoc.utils.stringify(a["nim"] or "")
+        blocks[#blocks + 1] = para({ pandoc.Strong(pandoc.Str(name)), pandoc.Str(" / " .. nim) }, "CoverName")
+      end
+    end
+    blocks[#blocks + 1] = spacer(200)
+    blocks[#blocks + 1] = para({ pandoc.Str("disetujui sebagai") }, "CoverLine")
+    blocks[#blocks + 1] = para({ pandoc.Strong(pandoc.Str("Laporan Magang Mandiri")) }, "CoverLine")
     local date_line = (app_city ~= "" and (app_city .. ", ") or "") .. app_date
     if date_line ~= "" then
-      blocks[#blocks + 1] = para({ pandoc.Str("Telah diperiksa dan disetujui pada: " .. date_line) }, "CoverLine")
+      blocks[#blocks + 1] = para({ pandoc.Str(date_line) }, "CoverLine")
     end
+    blocks[#blocks + 1] = spacer(400)
     if app["supervisors"] ~= nil and type(app["supervisors"]) == "table" then
       for _, sup in ipairs(app["supervisors"]) do
         local s_role = pandoc.utils.stringify(sup["role"] or "Pembimbing")
         local s_name = pandoc.utils.stringify(sup["name"] or "")
         local s_nip = pandoc.utils.stringify(sup["nip"] or "")
-        blocks[#blocks + 1] = spacer(360)
+        blocks[#blocks + 1] = spacer(200)
         blocks[#blocks + 1] = para({ pandoc.Str(s_role) }, "CoverLine")
         blocks[#blocks + 1] = spacer(480)
         blocks[#blocks + 1] = para({ pandoc.Strong(pandoc.Str(s_name)) }, "CoverName")
-        if s_nip ~= "" then
+        if s_nip ~= "" and s_nip ~= "-" and s_nip ~= "....." then
           blocks[#blocks + 1] = para({ pandoc.Str("NIP. " .. s_nip) }, "CoverLine")
         end
-      end
-    end
-    if app["dean"] ~= nil and type(app["dean"]) == "table" then
-      local d_role = pandoc.utils.stringify(app["dean"]["role"] or "Dekan")
-      local d_name = pandoc.utils.stringify(app["dean"]["name"] or "")
-      local d_nip = pandoc.utils.stringify(app["dean"]["nip"] or "")
-      blocks[#blocks + 1] = spacer(360)
-      blocks[#blocks + 1] = para({ pandoc.Str("Mengetahui, " .. d_role) }, "CoverLine")
-      blocks[#blocks + 1] = spacer(480)
-      blocks[#blocks + 1] = para({ pandoc.Strong(pandoc.Str(d_name)) }, "CoverName")
-      if d_nip ~= "" then
-        blocks[#blocks + 1] = para({ pandoc.Str("NIP. " .. d_nip) }, "CoverLine")
       end
     end
     blocks[#blocks + 1] = pagebreak()

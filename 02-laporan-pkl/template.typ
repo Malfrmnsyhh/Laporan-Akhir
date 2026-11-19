@@ -29,6 +29,7 @@ $if(font_family)$
 $else$
 #set text(font: "Libertinus Serif", size: 12pt)
 $endif$
+#set text(hyphenate: false)
 
 $if(line_spacing)$
 #set par(justify: true, leading: $line_spacing$, first-line-indent: $if(first_line_indent)$$first_line_indent$$else$1.25cm$endif$)
@@ -63,9 +64,9 @@ $endif$
       format-chapter-num(ns.at(0))
     }
   } else if ns.len() == 2 {
-    numbering("$if(heading_sub_dot)$1.1.$else$1.1$endif$", ..ns)
+    format-chapter-num(ns.at(0)) + "." + str(ns.at(1))
   } else {
-    numbering("$if(heading_subsub_dot)$1.1.1.$else$1.1.1$endif$", ..ns)
+    format-chapter-num(ns.at(0)) + "." + str(ns.at(1)) + "." + str(ns.at(2))
   }
 })
 
@@ -248,7 +249,8 @@ $endif$
   out.join()
 })
 
-#set table(stroke: 0.5pt + luma(140), inset: 4pt)
+#set table(stroke: 0.5pt + luma(140), inset: (x: 5pt, y: 5pt))
+#show table: set text(size: 9.5pt)
 #show table.header: set text(weight: "bold")
 #show figure.where(kind: table): set block(breakable: true)
 
@@ -311,154 +313,87 @@ $endif$
   #v(0.5cm)
   $endif$
 ] else [
-#v(1cm)
-#align(center)[
-  #text(size: 14pt, weight: "bold")[#title-lines]
-]
-$if(subtitle)$
-#v(0.3cm)
-#align(center)[
-  #text(size: 14pt, weight: "bold")[#upper("$subtitle$".replace("\n", " "))]
-]
-$endif$
-$if(course)$
-#v(0.8cm)
-#align(center)[
-  #text(size: 12pt, weight: "bold")[$course$]
-]
-$endif$
-$if(lecturer)$
-#let hide-lecturer = ("$cover_hide_lecturer$" == "true" or "$cover_show_lecturer$" == "false")
-#if not hide-lecturer [
-  #v(0.4cm)
+  #v(0.5cm)
   #align(center)[
-    #text(size: 11pt)[$if(lecturer_label)$$lecturer_label$$else$Dosen Pengampu:$endif$]
-    #text(size: 12pt, weight: "bold")[$lecturer$]
+    #text(size: 14pt, weight: "bold")[LAPORAN AKHIR]
+    #v(0.2cm)
+    #text(size: 14pt, weight: "bold")[MAGANG MANDIRI]
+    #v(0.8cm)
+    #text(size: 14pt, weight: "bold")[#title-lines]
+    #v(0.4cm)
+    #text(size: 12pt)[$if(pks_number)$$pks_number$$else$No. PKS: 015/UN63.7/PKS/2024$endif$]
   ]
-]
-$endif$
 
-#v(1fr)
-#align(center)[
-  #image("$if(logo)$$logo$$else$logo.jpg$endif$", width: $if(cover_logo_width)$$cover_logo_width$$else$4cm$endif$)
-]
-#v(1fr)
+  #v(1fr)
+  #align(center)[
+    #image("$if(logo)$$logo$$else$gambar/logo.png$endif$", width: $if(cover_logo_width)$$cover_logo_width$$else$4.5cm$endif$)
+  ]
+  #v(1fr)
 
-#align(center)[
-  #text(size: 12pt)[Disusun oleh:]
-]
-$for(author)$
-#v(0.3cm)
-#align(center)[
-  #text(size: 12pt, weight: "bold")[$author.name$] \
-  #text(size: 11pt)[$author.nim$]
-]
-$endfor$
+  #align(center)[
+    #text(size: 12pt)[
+      Diajukan untuk memenuhi persyaratan kelulusan \
+      Program Magang Mandiri
+    ]
+    #v(0.6cm)
+    #text(size: 12pt)[oleh :] \
+    #v(0.2cm)
+    $for(author)$
+    #text(size: 12pt)[$author.name$ \/ $author.nim$]
+    $endfor$
+  ]
 
-#v(1fr)
-#align(center)[
-  #text(size: 14pt, weight: "bold")[#upper("$faculty$".replace("\n", " "))]
-  #linebreak()
-  #text(size: 14pt, weight: "bold")[#upper("$institution$".replace("\n", " "))]
-  #linebreak()
-  #text(size: 14pt, weight: "bold")[#upper("$year$".replace("\n", " "))]
+  #v(1fr)
+  #align(center)[
+    #text(size: 14pt, weight: "bold")[PROGRAM STUDI INFORMATIKA] \
+    #text(size: 14pt, weight: "bold")[FAKULTAS ILMU KOMPUTER] \
+    #text(size: 14pt, weight: "bold")[UNIVERSITAS PEMBANGUNAN NASIONAL "VETERAN" JAWA TIMUR] \
+    #text(size: 14pt, weight: "bold")[2026]
+  ]
+  #v(0.5cm)
 ]
-#v(1cm)
 
 #pagebreak()
-#set page(numbering: "i")
+#set page(numbering: "i", number-align: center + bottom)
 #counter(page).update(1)
 
-$if(approval)$
-#align(center)[
-  #text(size: 14pt, weight: "bold")[LEMBAR PENGESAHAN]
-  #v(0.8cm)
-  #text(size: 12pt, weight: "bold")[#title-lines]
-]
-#v(0.5cm)
-#align(center)[
-  #text(size: 11pt)[Disusun oleh:] \
-  $for(author)$
-  #text(size: 11pt, weight: "bold")[$author.name$] #text(size: 11pt)[($author.nim$)] \
-  $endfor$
-]
-#v(0.5cm)
-#align(center)[
-  #text(size: 11pt)[Telah diperiksa dan disetujui untuk diujikan pada:] \
-  #text(size: 11pt)[$if(approval.city)$$approval.city$, $endif$$if(approval.date)$$approval.date$$else$$date$$endif$]
-]
-#v(1cm)
-#grid(
-  columns: (1fr, 1fr),
-  gutter: 20pt,
-  $for(approval.supervisors)$
-  align(center)[
-    #text(size: 10.5pt)[$it.role$] \
-    #v(2cm)
-    #text(size: 10.5pt, weight: "bold")[$it.name$] \
-    $if(it.nip)$#text(size: 9pt)[NIP. $it.nip$]$endif$
-  ],
-  $endfor$
-)
-$if(approval.dean)$
-#v(1cm)
-#align(center)[
-  #text(size: 10.5pt)[Mengetahui,] \
-  #text(size: 10.5pt)[$approval.dean.role$] \
-  #v(2cm)
-  #text(size: 10.5pt, weight: "bold")[$approval.dean.name$] \
-  $if(approval.dean.nip)$#text(size: 9pt)[NIP. $approval.dean.nip$]$endif$
-]
-$endif$
-#pagebreak()
-$endif$
-
-$if(abstract_id)$
-#align(center)[
-  #text(size: 14pt, weight: "bold")[ABSTRAK]
-]
-#v(0.5cm)
-#align(center)[
-  #text(size: 11pt, weight: "bold")[#title-lines]
-]
-#v(0.5cm)
-#set par(justify: true, leading: 0.65em, first-line-indent: 1cm)
-#text(size: 11pt)[
-  $abstract_id$
-]
-$if(keywords_id)$
-#v(0.5cm)
-#text(size: 10.5pt)[
-  #set par(first-line-indent: 0cm)
-  #strong[Kata Kunci:] #emph[$for(keywords_id)$$keywords_id$$sep$, $endfor$]
-]
-$endif$
-#pagebreak()
-$endif$
-
-$if(abstract_en)$
-#align(center)[
-  #text(size: 14pt, weight: "bold")[ABSTRACT]
-]
-#v(0.5cm)
-#align(center)[
-  #text(size: 11pt, weight: "bold", style: "italic")[#title-lines]
-]
-#v(0.5cm)
-#set par(justify: true, leading: 0.65em, first-line-indent: 1cm)
-#text(size: 11pt, style: "italic")[
-  $abstract_en$
-]
-$if(keywords_en)$
-#v(0.5cm)
-#text(size: 10.5pt)[
-  #set par(first-line-indent: 0cm)
-  #strong[Keywords:] #emph[$for(keywords_en)$$keywords_en$$sep$, $endfor$]
-]
-$endif$
-#pagebreak()
-$endif$
-
+#if not is-journal [
+  $if(approval)$
+  #align(center)[
+    #text(size: 14pt, weight: "bold")[LEMBAR PENGESAHAN]
+    #v(0.8cm)
+    #text(size: 12pt, weight: "bold")[#title-lines]
+    #v(0.3cm)
+    #text(size: 11pt)[Di PT Jawa Pos Media Televisi (JTV)]
+  ]
+  #v(0.5cm)
+  #align(center)[
+    #text(size: 11pt)[oleh :] \
+    #v(0.15cm)
+    $for(author)$
+    #text(size: 11pt, weight: "bold")[$author.name$] #text(size: 11pt)[\/ $author.nim$] \
+    $endfor$
+    #v(0.3cm)
+    #text(size: 11pt)[disetujui sebagai] \
+    #text(size: 11pt, weight: "bold")[Laporan Magang Mandiri]
+    #v(0.3cm)
+    #text(size: 11pt)[$if(approval.city)$$approval.city$, $endif$$if(approval.date)$$approval.date$$else$$date$$endif$]
+  ]
+  #v(1.2cm)
+  #grid(
+    columns: (1fr, 1fr),
+    gutter: 20pt,
+    $for(approval.supervisors)$
+    align(center)[
+      #text(size: 10.5pt)[$it.role$] \
+      #v(2.2cm)
+      #text(size: 10.5pt, weight: "bold")[$it.name$] \
+      $if(it.nip)$#text(size: 9.5pt)[NIP. $it.nip$]$endif$
+    ],
+    $endfor$
+  )
+  #pagebreak()
+  $endif$
 ]
 
 #let opt-daftar-gambar = $if(daftar_gambar)$$daftar_gambar$$else$$if(list_of_figures)$$list_of_figures$$else$false$endif$$endif$
