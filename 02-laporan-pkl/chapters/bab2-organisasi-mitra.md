@@ -26,7 +26,7 @@ Bagian ini menguraikan tahapan pekerjaan terperinci yang dijalankan mahasiswa:
    - Merancang skema relasi basis data MySQL (*Physical Data Model*).
    - Menentukan kontrak endpoint RESTful API dan arsitektur modular Laravel.
 3. **Tahap Implementasi Kode**:
-   - Sisi Backend: Mengembangkan controller, domain service, form request, dan model pada modul `DataCenterOps` serta mengintegrasikan *shared kernel* dari `CorePlatform`.
+   - Sisi Backend: Mengembangkan *controller*, *domain service*, *form request*, dan *model* pada modul *DataCenterOps* serta mengintegrasikan *shared kernel* dari *CorePlatform*.
    - Sisi Frontend: Mengembangkan komponen visualisasi rak 42U (*interactive rack grid*), form modal, data table terpaginasi, dan state management via TanStack Query pada aplikasi React TypeScript.
 4. **Tahap Pengujian & Integrasi**: Melakukan pengujian fungsional unit (*unit test*), pengujian integrasi antarmuka, serta penanganan kasus ekstrem (*edge cases* seperti *concurrency lock*).
 

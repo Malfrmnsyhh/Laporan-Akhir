@@ -20,29 +20,29 @@ Bagian ini memetakan artefak rekayasa perangkat lunak hasil magang ke dalam Capa
 *(Panduan Penulisan Sub-Bab IV.2)*:
 Bagian ini membuktikan kompetensi rekayasa perangkat lunak berbasis kerangka kerja modern (*framework*):
 1. **Rekayasa Framework Sisi Klien (React 18 + Vite + TypeScript)**:
-   - Pola modular antarmuka: pemisahan direktori `modules/data-center-ops/` dan `shared/components/`.
+   - Pola modular antarmuka: pemisahan direktori *modules/data-center-ops/* dan *shared/components/*.
    - *State Management* dan sinkronisasi server: pemanfaatan TanStack Query (React Query) untuk manajemen *caching*, *optimistic update*, dan pencegahan *duplicate network requests*.
-   - *Component-Driven Architecture*: rancang bangun komponen kustom interaktif seperti `RackVisualPicker.tsx` (grid vertikal 42U) dan `QrScannerModal.tsx`.
+   - *Component-Driven Architecture*: rancang bangun komponen kustom interaktif seperti *RackVisualPicker.tsx* (grid vertikal 42U) dan *QrScannerModal.tsx*.
    - *Type Safety*: pendefinisian antarmuka tipe TypeScript yang ketat pada lapisan DTO (*Data Transfer Object*).
 2. **Rekayasa Framework Sisi Server (Laravel 11 Modular)**:
-   - Arsitektur berbasis paket modul (`Modules/DataCenterOps/` dan `Modules/CorePlatform/`).
+   - Arsitektur berbasis paket modul (*Modules/DataCenterOps/* dan *Modules/CorePlatform/*).
    - Pemisahan lapisan tanggung jawab (*Separation of Concerns*): Lapisan *Controller* tipis, *Domain Service Layer* berbobot, *Form Request Validator*, dan *Eloquent Model*.
-   - Penegakan multi-tenancy transparan via *Global Scope Eloquent Trait* `ScopesOrganization`.
-   - Penanganan eksepsi global (*Global Exception Handler*) untuk penomoran otomatis dokumen `NumberSequenceNotConfiguredException`.
+   - Penegakan *multi-tenancy* transparan via *Global Scope Eloquent Trait* *ScopesOrganization*.
+   - Penanganan eksepsi global (*Global Exception Handler*) untuk penomoran otomatis dokumen *NumberSequenceNotConfiguredException*.
 
 ## Rekognisi Mata Kuliah Pemrograman API (IF261217)
 
 *(Panduan Penulisan Sub-Bab IV.3)*:
 Bagian ini memvalidasi penguasaan arsitektur antarmuka pemrograman aplikasi (API):
 1. **Perancangan Arsitektur RESTful API**:
-   - Standar kontrak endpoint (URI, metode HTTP, format respon standar JSON `{success, message, data, errors}`, serta kode status HTTP yang tepat: 200, 201, 401, 403, 409, 422).
-   - Penyusunan tabel spesifikasi endpoint representatif modul Data Center Operations.
+   - Standar kontrak *endpoint* (URI, metode HTTP, format respon standar JSON *{success, message, data, errors}*, serta kode status HTTP yang tepat: 200, 201, 401, 403, 409, 422).
+   - Penyusunan tabel spesifikasi *endpoint* representatif modul Data Center Operations.
 2. **Lapisan Keamanan & Middleware Pipeline**:
-   - Autentikasi OAuth2 berbasis *Bearer Token* (Laravel Passport) yang ditegakkan melalui guard terdedikasi `api`.
-   - Middleware otorisasi berbasis peran: `ApiPermissionMiddleware` yang memeriksa izin granuler pengguna sebelum controller dieksekusi.
-   - Middleware integrasi mesin (*M2M*): `ApiKeyMiddleware` untuk sensor telemetri rak yang memvalidasi kunci kriptografi dan menyaring IP pengirim via pencocokan subnet CIDR (*CIDR IP Whitelist Guard*).
+   - Autentikasi OAuth2 berbasis *Bearer Token* (Laravel Passport) yang ditegakkan melalui *guard* terdedikasi *api*.
+   - *Middleware* otorisasi berbasis peran: *ApiPermissionMiddleware* yang memeriksa izin granuler pengguna sebelum *controller* dieksekusi.
+   - *Middleware* integrasi mesin (*M2M*): *ApiKeyMiddleware* untuk sensor telemetri rak yang memvalidasi kunci kriptografi dan menyaring IP pengirim via pencocokan subnet CIDR (*CIDR IP Whitelist Guard*).
 3. **Pemodelan Data Fisik & Relasi ERD**:
-   - Penyajian diagram relasi entitas (*Physical ERD*) mencakup tabel `dc_site`, `dc_site_room`, `dc_rack`, `dc_rack_allocation`, `dc_device`, `dc_network_port`, `dc_cross_connect`, dan `dc_visitor_pass`.
+   - Penyajian diagram relasi entitas (*Physical ERD*) mencakup tabel *dc_site*, *dc_site_room*, *dc_rack*, *dc_rack_allocation*, *dc_device*, *dc_network_port*, *dc_cross_connect*, dan *dc_visitor_pass*.
    - Penegakan integritas data: *foreign key constraints*, *composite unique indexes*, serta *scoped uniqueness* (contoh: nomor port unik per perangkat, kode ruangan unik per gedung).
 
 ## Rekognisi Mata Kuliah Praktik Kerja Lapangan (IF221129) dan Magang Industri (IF221381)

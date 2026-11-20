@@ -16,14 +16,14 @@ Bagian ini menguraikan tahapan proses rekayasa sistem dan solusi teknis yang dii
 1. **Metodologi Pengembangan**: Penerapan siklus kerja *Agile Development* (Sprint mingguan, peninjauan kode/code review, dan integrasi berkelanjutan).
 2. **Kakas dan Teknologi (*Tech Stack*)**:
    - Sisi Klien: React 18, TypeScript, Tailwind CSS, TanStack Query (React Query v5), Axios, Lucide Icons, dan HTML5 QR Scanner.
-   - Sisi Server: PHP 8.2, Laravel 11 Modular (`nwidart/laravel-modules`), Laravel Passport (OAuth2 Bearer Token), dan MySQL 8.
+   - Sisi Server: PHP 8.2, Laravel 11 Modular (*nwidart/laravel-modules*), Laravel Passport (OAuth2 Bearer Token), dan MySQL 8.
 3. **Hambatan Teknis yang Dihadapi**:
    - Persaingan akses konkuren (*race condition*) pada saat dua teknisi melakukan alokasi slot unit rak atau menghasilkan nomor urut dokumen secara bersamaan.
    - Kompleksitas validasi relasi hierarkis spasial bertingkat (*Site -> Room -> Rack -> Unit Slot*).
    - Penolakan otentikasi API guard pada request lintas domain.
 4. **Solusi Rekayasa yang Diterapkan**:
-   - Penggunaan transaksi atomik basis data (`DB::transaction`) dan kunci pesimistik (`lockForUpdate()`) pada layanan alokasi rak dan *NumberSequence*.
-   - Penerapan trait semesta `ScopesOrganization` untuk mengisolasi seluruh data tenant secara transparan di tingkat Eloquent ORM.
+   - Penggunaan transaksi atomik basis data (*DB::transaction*) dan kunci pesimistik (*lockForUpdate()*) pada layanan alokasi rak dan *NumberSequence*.
+   - Penerapan *trait* semesta *ScopesOrganization* untuk mengisolasi seluruh data *tenant* secara transparan di tingkat Eloquent ORM.
    - Penyediaan komponen visual antarmuka *RackVisualPicker* 42U interaktif yang langsung memetakan status slot hijau (*available*), biru (*reserved*), dan merah (*booked*).
 
 ## Pencapaian Hasil dan Evaluasi Mitra

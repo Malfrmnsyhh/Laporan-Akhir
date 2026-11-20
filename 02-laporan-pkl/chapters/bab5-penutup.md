@@ -10,8 +10,8 @@ Bagian ini menyimpulkan seluruh proses dan hasil yang diperoleh selama pelaksana
 2. **Kesimpulan Substansi Teknis**:
    - Modul *Data Center Operations* berhasil dirancang dan diimplementasikan secara terintegrasi mencakup 5 klaster fungsional (Fasilitas Fisik, Jaringan & Pengkabelan, Telemetri Lingkungan, Operasional Dokumen, dan Keamanan Akses Fisik).
    - Penggunaan arsitektur React 18 SPA dan Laravel 11 Modular terbukti mampu memberikan performa tinggi, modularitas kode yang rapi, serta kemudahan pemeliharaan sistem jangka panjang.
-   - Penerapan mekanisme *pessimistic locking* (`lockForUpdate`) dan transaksi atomik berhasil memecahkan persoalan *race condition* pada alokasi lemari rak dan penomoran dokumen otomatis.
-   - Isolasi data *multi-tenancy* terbukti kokoh melalui penegakan global scope `ScopesOrganization` dan validasi header `X-Organization-Id`.
+   - Penerapan mekanisme *pessimistic locking* (*lockForUpdate*) dan transaksi atomik berhasil memecahkan persoalan *race condition* pada alokasi lemari rak dan penomoran dokumen otomatis.
+   - Isolasi data *multi-tenancy* terbukti kokoh melalui penegakan *global scope* *ScopesOrganization* dan validasi *header* *X-Organization-Id*.
 
 ## Saran
 
