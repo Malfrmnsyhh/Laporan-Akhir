@@ -151,7 +151,7 @@ end
 local function spacer(before)
   return pandoc.RawBlock(
     "openxml",
-    '<w:p><w:pPr><w:spacing w:before="' .. before .. '"/></w:pPr></w:p>'
+    '<w:p><w:pPr><w:spacing w:before="' .. before .. '" w:after="0" w:line="20" w:lineRule="exact"/><w:rPr><w:sz w:val="2"/><w:szCs w:val="2"/></w:rPr></w:pPr></w:p>'
   )
 end
 
@@ -450,19 +450,19 @@ function Pandoc(doc)
   if logo_file == "" then logo_file = "gambar/logo.png" end
   local logo_width = meta_str(meta, "cover_logo_width")
   if logo_width == "" then logo_width = "4.5cm" end
-  blocks[#blocks + 1] = spacer(400)
+  blocks[#blocks + 1] = spacer(240)
   blocks[#blocks + 1] = pandoc.Div(
     { pandoc.Para({ pandoc.Image({}, logo_file, "", pandoc.Attr("", {}, { width = logo_width })) }) },
     pandoc.Attr("", {}, { ["custom-style"] = "CoverImage" })
   )
-  blocks[#blocks + 1] = spacer(400)
+  blocks[#blocks + 1] = spacer(240)
 
   blocks[#blocks + 1] = para({
     pandoc.Str("Diajukan untuk memenuhi persyaratan kelulusan"),
     pandoc.LineBreak(),
     pandoc.Str("Program Magang Mandiri")
   }, "CoverLine")
-  blocks[#blocks + 1] = spacer(200)
+  blocks[#blocks + 1] = spacer(160)
   blocks[#blocks + 1] = para({ pandoc.Str("oleh :") }, "CoverLine")
   local authors = meta["author"]
   if authors ~= nil then
@@ -480,7 +480,7 @@ function Pandoc(doc)
     end
   end
 
-  blocks[#blocks + 1] = spacer(400)
+  blocks[#blocks + 1] = spacer(280)
   blocks[#blocks + 1] = para({ pandoc.Strong(pandoc.Str("PROGRAM STUDI INFORMATIKA")) }, "CoverInstitution")
   blocks[#blocks + 1] = para({ pandoc.Strong(pandoc.Str("FAKULTAS ILMU KOMPUTER")) }, "CoverInstitution")
   blocks[#blocks + 1] = para({ pandoc.Strong(pandoc.Str('UNIVERSITAS PEMBANGUNAN NASIONAL "VETERAN" JAWA TIMUR')) }, "CoverInstitution")

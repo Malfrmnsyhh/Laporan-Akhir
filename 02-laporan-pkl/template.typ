@@ -313,8 +313,10 @@ $endif$
   #v(0.5cm)
   $endif$
 ] else [
+  #set par(justify: false, first-line-indent: 0cm)
   #v(0.5cm)
   #align(center)[
+    #set par(justify: false, first-line-indent: 0cm)
     #text(size: 14pt, weight: "bold")[LAPORAN AKHIR]
     #v(0.2cm)
     #text(size: 14pt, weight: "bold")[MAGANG MANDIRI]
@@ -331,6 +333,7 @@ $endif$
   #v(1fr)
 
   #align(center)[
+    #set par(justify: false, first-line-indent: 0cm)
     #text(size: 12pt)[
       Diajukan untuk memenuhi persyaratan kelulusan \
       Program Magang Mandiri
@@ -345,6 +348,7 @@ $endif$
 
   #v(1fr)
   #align(center)[
+    #set par(justify: false, first-line-indent: 0cm)
     #text(size: 14pt, weight: "bold")[PROGRAM STUDI INFORMATIKA] \
     #text(size: 14pt, weight: "bold")[FAKULTAS ILMU KOMPUTER] \
     #text(size: 14pt, weight: "bold")[UNIVERSITAS PEMBANGUNAN NASIONAL "VETERAN" JAWA TIMUR] \

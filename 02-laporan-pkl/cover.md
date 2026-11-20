@@ -16,9 +16,9 @@ Laporan Akhir ini disusun guna memenuhi persyaratan kelulusan mata kuliah Prakti
 
 Penulis menyadari sepenuhnya bahwa keberhasilan pelaksanaan magang dan penyelesaian laporan ini tidak terlepas dari bimbingan, arahan, doa, serta bantuan dari berbagai pihak. Oleh karena itu, pada kesempatan ini penulis menyampaikan rasa terima kasih dan apresiasi yang setinggi-tingginya kepada:
 
-1. **Bapak Prof. Dr. Ir. Akhmad Fauzi, M.MT., IPU.**, selaku Rektor Universitas Pembangunan Nasional "Veteran" Jawa Timur yang telah memfasilitasi pelaksanaan program Merdeka Belajar Kampus Merdeka bagi mahasiswa.
+1. **Ibu Prof. Dr. Ir. Rossyda Priyadarshini, M.P.**, selaku Rektor Universitas Pembangunan Nasional "Veteran" Jawa Timur yang telah memfasilitasi pelaksanaan program Merdeka Belajar Kampus Merdeka bagi mahasiswa.
 2. **Ibu Prof. Dr. Ir. Novirina Hendrasarie, MT.**, selaku Dekan Fakultas Ilmu Komputer Universitas Pembangunan Nasional "Veteran" Jawa Timur yang senantiasa mendukung kelancaran program magang industri mahasiswa.
-3. **Ibu Fetty Tri Anggraeny, S.Kom., M.Kom.**, selaku Koordinator Program Studi Informatika Fakultas Ilmu Komputer Universitas Pembangunan Nasional "Veteran" Jawa Timur yang telah memberikan arahan akademis serta persetujuan konversi mata kuliah.
+3. **Ibu Dr. Intan Yuniar Purbasari, S.Kom., M.Sc.**, selaku Koordinator Program Studi Informatika Fakultas Ilmu Komputer Universitas Pembangunan Nasional "Veteran" Jawa Timur yang telah memberikan arahan akademis serta persetujuan konversi mata kuliah.
 4. **Bapak Ardhon Rakhmadi, S.Tr.T., M.Kom.**, selaku Dosen Pembimbing PKL yang senantiasa meluangkan waktu memberikan bimbingan intensif, kritik konstruktif, serta arahan metodologis yang sangat berharga dalam penyusunan laporan ini.
 5. **Bapak M. Triman Prasodjo, S.T.**, selaku Direktur Teknik PT Jawa Pos Media Televisi (JTV) dan Pembimbing Lapangan yang telah memberikan kesempatan, izin, fasilitas kerja, dan arahan profesional selama penulis melaksanakan praktik kerja di Divisi Teknologi Informasi.
 6. Seluruh staf dan teknisi Divisi Teknologi Informasi PT Jawa Pos Media Televisi (JTV) atas transfer ilmu praktis, keterbukaan diskusi teknis, dan kerja sama yang solid selama rekayasa sistem berlangsung.
