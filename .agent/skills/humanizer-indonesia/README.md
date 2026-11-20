@@ -1,0 +1,208 @@
+# Humanizer Indonesia
+
+Skill Claude untuk menyunting teks bahasa Indonesia agar tidak terbaca kaku, tidak terasa
+seperti keluaran model atau terjemahan, dan kembali ke gaya penulisnya. Skill ini juga
+bisa dipakai untuk mengaudit berkas yang sudah disunting model lain, misalnya hasil
+suntingan Gemini atau ChatGPT.
+
+Versi saat ini: **1.7.2** (18 November 2026). Riwayat perubahan ada di bagian atas
+[`SKILL.md`](SKILL.md).
+
+## Penting: ini bukan alat untuk lolos detektor AI
+
+Skill ini **tidak** dibuat untuk menyiasati detektor AI seperti GPTZero, dan memang tidak
+akan berhasil untuk itu. Teks yang disunting dengan skill ini **tetap akan terdeteksi
+sebagai tulisan AI**. Pengukuran yang tercatat di `SKILL.md` menunjukkan bahwa semua
+penyetelan gaya otomatis mendarat di skor human sekitar 1 sampai 2 persen pada GPTZero.
+Satu-satunya hal yang terbukti menggeser skor secara berarti adalah suntingan tangan
+penulisnya sendiri.
+
+Tujuan skill ini adalah membuat teks **lebih luwes dan enak dibaca**: membuang
+nominalisasi yang menumpuk, konektor yang berlebihan, ritme kalimat yang seragam, kalke
+dari bahasa Inggris, dan pola khas keluaran model lainnya. Hasilnya adalah **draf untuk
+disunting manusia**, bukan teks jadi. Membaca ulang dan menyunting dengan tangan tetap
+menjadi tugas penulis.
+
+Gunakan dengan jujur. Bila institusi, jurnal, atau dosen Anda mewajibkan pengungkapan
+pemakaian AI, ungkapkan.
+
+## Tentang berkas rujukan suara
+
+Berkas [`references/voice-prib-id.md`](references/voice-prib-id.md) adalah **preset
+suara milik penulis repo ini** (Pribadi Mumpuni Adhi, disingkat PRIB), disusun dari
+korpus tulisannya sendiri tahun 2008 sampai 2025. Ambang pada `scripts/metrik.py` juga
+dikalibrasi terhadap korpus yang sama.
+
+Berkas ini disertakan sebagai contoh lengkap seperti apa preset suara yang baik. **Anda
+bebas memakai preset sendiri**, dan sebaiknya memang begitu jika Anda ingin hasil
+suntingan mengikuti gaya Anda. Skill mengenali berkas preset apa pun bernama
+`references/voice-*.md`, dan kerangka kosongnya tersedia di
+[`references/voice-template-id.md`](references/voice-template-id.md). Lihat bagian
+[Memakai preset suara sendiri](#memakai-preset-suara-sendiri).
+
+Bila tidak ada preset yang cocok, skill ini akan memakai suara netral yang wajar untuk
+registernya dan menyatakan terus terang bahwa kalibrasi suara tidak dilakukan.
+
+## Isi repo
+
+| Berkas | Isi |
+|---|---|
+| `SKILL.md` | Instruksi utama skill: alur kerja delapan langkah, kaidah, contoh |
+| `references/id-ai-tells.md` | Katalog pola khas tulisan AI dalam bahasa Indonesia, positif palsu, dan register yang dikecualikan |
+| `references/voice-prib-id.md` | Preset suara penulis (contoh, silakan diganti) |
+| `references/voice-template-id.md` | Kerangka kosong untuk menyusun preset suara sendiri |
+| `scripts/metrik.py` | Pengukur metrik gaya teks Indonesia, tanpa dependensi di luar pustaka standar Python |
+| `portable/` | Versi portabel untuk ChatGPT dan Gemini: instruksi ringkas, panduan pemasangan, skrip paket |
+
+## Pemasangan
+
+**Claude.ai (web, desktop, mobile).** Unduh repo ini sebagai ZIP (tombol *Code* lalu
+*Download ZIP*), pastikan folder `humanizer-indonesia` berada di akar arsip, lalu unggah
+lewat pengaturan Skills di Claude. Panduan resminya ada di
+[support.claude.com](https://support.claude.com).
+
+**Claude Code.** Salin folder ini ke direktori skill pribadi Anda:
+
+```bash
+git clone https://github.com/adhiprib/humanizer-indonesia.git ~/.claude/skills/humanizer-indonesia
+```
+
+**Google Antigravity.** Antigravity membaca skill dengan format `SKILL.md` yang sama,
+sehingga folder ini dapat dipasang tanpa perubahan. Ada dua cakupan pemasangan:
+
+- **Global**, berlaku untuk semua proyek: `~/.gemini/config/skills/humanizer-indonesia/`.
+  Di Windows, lokasinya `%USERPROFILE%\.gemini\config\skills\humanizer-indonesia\`.
+  Versi Antigravity yang lebih lama memakai `~/.gemini/antigravity/skills/`.
+- **Per proyek**, hanya untuk satu ruang kerja: `<akar-proyek>/.agents/skills/humanizer-indonesia/`.
+
+macOS atau Linux:
+
+```bash
+git clone https://github.com/adhiprib/humanizer-indonesia.git ~/.gemini/config/skills/humanizer-indonesia
+```
+
+Windows (PowerShell):
+
+```powershell
+git clone https://github.com/adhiprib/humanizer-indonesia.git "$env:USERPROFILE\.gemini\config\skills\humanizer-indonesia"
+```
+
+Untuk memperbarui ke versi terbaru, jalankan `git pull` di dalam folder tersebut. Bila
+skill yang sama pernah dipasang di lebih dari satu lokasi, hapus salinan lama supaya agen
+tidak memuat dua versi berbeda.
+
+Agen Antigravity memilih skill berdasarkan kolom `description`, sehingga permintaan seperti
+"rapikan bahasa paragraf ini" sudah cukup untuk memicunya. Bila ingin memastikan, sebut
+namanya secara eksplisit, misalnya "pakai skill humanizer-indonesia untuk abstrak ini".
+Perintah `/humanizer-id` adalah fitur Claude Code dan belum tentu tersedia di Antigravity.
+Skrip `scripts/metrik.py` dijalankan agen lewat terminal, jadi Python 3 perlu terpasang di
+komputer Anda.
+
+Panduan resmi Google tentang skill Antigravity ada di
+[codelabs.developers.google.com](https://codelabs.developers.google.com/getting-started-with-antigravity-skills).
+
+**ChatGPT dan Gemini (web dan aplikasi HP).** Versi portabel dapat dipakai lewat
+Project ChatGPT, Custom GPT jika editornya tersedia di akun, atau Gem dan skill di Gemini. Sejak
+17 November 2026, Gem pada akun Google pribadi diganti skill, sedangkan akun Workspace
+menyusul pada 2027. Karena itu kedua jalur Gemini tetap tersedia, dan paketnya dibuat
+oleh `portable/buat_paket.py`. Skill mandiri di ChatGPT hanya tersedia di aplikasi
+desktop dan Codex, sedangkan di web dan HP skill perlu dikemas sebagai plugin. Panduan dan
+instruksi ringkasnya ada di [`portable/README.md`](portable/README.md). Metrik hanya
+dilaporkan jika benar-benar dihitung. Jika skrip tidak dapat dijalankan, metrik ditulis
+*tidak diukur*.
+
+Video tutorial pemasangan, dari mengunduh ZIP di halaman rilis sampai uji pertama:
+
+- [Tutorial Penggunaan Humanizer Indonesia di ChatGPT](https://youtu.be/1m0B6j2egko)
+- [Tutorial Pemasangan Humanizer Indonesia di Gemini melalui Skill](https://youtu.be/8lhmU4xAt1g) (versi 1.7.2)
+- [Tutorial Penggunaan Humanizer Indonesia di Gemini melalui Gem](https://youtu.be/5NclZSGfZfk) (untuk akun yang Gem-nya belum dipindahkan ke skill)
+
+## Cara memakai
+
+Panggil dengan `/humanizer-id`, atau cukup minta dalam bahasa biasa, misalnya
+"rapikan bahasa abstrak ini", "biar tidak kaku", "kalimatnya masih terasa terjemahan",
+atau "audit hasil suntingan Gemini ini".
+
+Skill ini cocok untuk paper, abstrak, prosiding, proposal, buku ajar, modul, diktat,
+laporan, dan surel berbahasa Indonesia. Skill ini **tidak** dipakai untuk teks berbahasa
+Inggris, dokumen hukum (paten, kontrak, peraturan), kutipan langsung, atau instrumen
+penelitian tervalidasi.
+
+### Menjalankan pengukur metrik secara langsung
+
+```bash
+python3 scripts/metrik.py berkas.md --preset akademik
+cat teks.txt | python3 scripts/metrik.py -
+```
+
+Preset yang tersedia: `akademik`, `ajar`, `semiformal`.
+
+## Memakai preset suara sendiri
+
+Ada tiga cara, dari yang paling ringan.
+
+**1. Lampirkan contoh tulisan di percakapan.** Tanpa mengubah berkas apa pun, sertakan
+satu atau dua tulisan Anda bersama teks yang akan disunting, misalnya "sunting teks ini,
+register akademik, sesuaikan dengan gaya tulisan saya di lampiran". Skill membaca contoh
+itu pada Langkah 4. Kalibrasi ini perlu diulang di setiap percakapan.
+
+**2. Susun preset suara sendiri.** Preset menyimpan kalibrasi itu secara permanen.
+
+1. Kumpulkan beberapa tulisan Anda sendiri, idealnya yang disusun **tanpa bantuan AI**.
+   Semakin beragam registernya, semakin baik. Tulisan sebelum 2023 lebih aman sebagai
+   patokan.
+2. Beri Claude, ChatGPT, atau Gemini tulisan-tulisan itu beserta
+   [`voice-template-id.md`](references/voice-template-id.md) dan
+   [`voice-prib-id.md`](references/voice-prib-id.md), lalu pakai prompt berikut:
+
+```text
+Saya melampirkan beberapa tulisan saya sendiri yang saya susun tanpa bantuan AI,
+masing-masing dengan tahun dan registernya (akademik, ajar, atau semiformal).
+Susun preset suara saya untuk skill humanizer-indonesia dengan mengikuti kerangka
+voice-template-id.md dan contoh voice-prib-id.md. Isi setiap bagian hanya dari
+tulisan yang saya lampirkan, kutip kalimat aslinya sebagai contoh, dan jangan
+mengarang kebiasaan yang tidak ada di tulisan itu. Jika metrik.py dapat dijalankan,
+ukur setiap tulisan dengan preset yang sesuai registernya lalu isi bagian 1 dengan
+angkanya; jika tidak dapat, tulis "tidak diukur". Beri nama berkasnya
+voice-[nama saya]-id.md dan serahkan sebagai satu berkas Markdown.
+```
+
+3. Periksa hasilnya. Hapus penanda suara yang tidak Anda kenali sebagai kebiasaan sendiri,
+   dan pastikan tidak ada lagi isian bertanda kurung siku. Skill menganggap berkas yang
+   masih memuat isian seperti [NAMA] sebagai kerangka dan tidak memakainya.
+
+**3. Pasang preset di platform Anda.**
+
+| Platform | Cara memasang |
+|---|---|
+| Claude Code atau Claude (skill) | Simpan berkas di folder `references/` skill, misalnya `references/voice-namaanda-id.md`, lalu unggah ulang skill jika Anda memakai Claude. `SKILL.md` tidak perlu diubah. |
+| Project ChatGPT, Custom GPT, atau Gem | Unggah berkas preset bersama berkas lain. `voice-prib-id.md` boleh tidak diunggah. |
+| Skill Gemini | Tambahkan berkas preset ke ZIP `humanizer-indonesia-gemini-skill.zip` sebelum diunggah, atau tambahkan lewat **Add files** saat membuat skill secara manual. |
+
+Jika Anda memasang lebih dari satu preset milik sendiri, skill akan menanyakan mana yang
+dipakai. Sebut nama presetnya dalam permintaan untuk melewati pertanyaan itu.
+
+Ambang di `scripts/metrik.py` dikalibrasi terhadap tulisan penulis repo ini. Jika tulisan
+Anda sendiri berstatus PERIKSA pada beberapa baris, sesuaikan `PRESET` di skrip dengan
+rentang metrik tulisan Anda. Prinsipnya, tulisan Anda sendiri harus lulus.
+
+## Asal-usul
+
+Skill ini dikembangkan dari skill **humanizer** karya blader,
+[github.com/blader/humanizer](https://github.com/blader/humanizer) (lisensi MIT), yang
+menyunting teks bahasa Inggris berdasarkan panduan *Signs of AI writing* dari Wikipedia.
+Terima kasih kepada pembuatnya.
+
+Yang diwarisi dari skill tersebut adalah kerangka kerjanya, yaitu putaran draf, audit,
+lalu revisi akhir. Katalog polanya disusun ulang sepenuhnya untuk bahasa Indonesia,
+karena pola khas tulisan AI dalam bahasa Indonesia berbeda jauh dari pola dalam bahasa
+Inggris. Preset suara, pengukur metrik, dan langkah-langkah kalke, personifikasi, serta
+audit berkas suntingan model lain merupakan tambahan baru.
+
+Untuk menyunting teks berbahasa Inggris, pakai skill aslinya.
+
+## Lisensi
+
+[MIT](LICENSE). Anda bebas memakai, menyalin, mengubah, dan menyebarkan skill ini,
+termasuk mengganti preset suaranya, selama pemberitahuan hak cipta dan lisensi tetap
+disertakan.
