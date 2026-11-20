@@ -131,3 +131,8 @@ Engine kompilasi (`template.typ` & `docx.lua`) menghitung penomoran bab dan sub-
 - **DILARANG KERAS** menggunakan karakter gambar kotak Unicode (`├`, `─`, `│`, `┌`, `└`) di dalam tabel atau diagram karena merusak parser Pandoc/Typst.
 - Seluruh tabel wajib menggunakan format standar *Markdown Pipe Table* (`| Kolom 1 | Kolom 2 |`).
 
+### 5.8. Larangan Penggunaan Inline Backtick di Paragraf Narasi
+- **DILARANG KERAS** menggunakan tanda *inline backtick* (`` ` ``) di tengah paragraf narasi pada seluruh bab laporan (`02-laporan-pkl/` maupun `01-laporan-magang/`).
+- Seluruh nama modul (misal: *DataCenterOps*, *CorePlatform*, *CrmSales*), kelas (*class*), metode (*method* seperti *NumberSequence::next()*), *header* HTTP (*X-Organization-Id*), nama berkas (*file*), nama tabel basis data, maupun istilah asing **WAJIB** ditulis menggunakan font utama **Times New Roman 12 pt** dengan format **cetak miring (*italic*)**.
+- Hal ini bertujuan agar tipografi dokumen akademik tampak bersih, seragam, dan profesional tanpa adanya font *monospace* yang menyembul tidak beraturan di tengah kalimat narasi.
+

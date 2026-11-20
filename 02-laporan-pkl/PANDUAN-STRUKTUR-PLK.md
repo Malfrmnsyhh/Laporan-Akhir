@@ -16,6 +16,7 @@
 | **Spasi Baris** | **1.5 spasi** (*line spacing* $1.5$ / pada Typst `line_spacing: 0.75em`) |
 | **Indentasi Paragraf** | **1.27 cm** (*first-line indent* standar 0.5 inci) |
 | **Gaya Sitasi** | **IEEE Style** (penomoran numerik kurung siku terurut abjad berdasar nama pengarang, e.g. `[1]`) |
+| **Tipografi Narasi & Larangan Backtick** | Seluruh teks narasi wajib menggunakan font utama **Times New Roman 12 pt**. **DILARANG KERAS** menggunakan tanda *inline backtick* (`` ` ``) di tengah paragraf narasi; seluruh nama modul, kelas, method, header HTTP, tabel database, file, maupun istilah asing wajib ditulis menggunakan font utama **Times New Roman 12 pt** dengan format **cetak miring (*italic*)**. |
 | **Preset Engine** | `upn-plk` (`02-laporan-pkl/presets/upn-plk.yml`) |
 
 ---
@@ -98,7 +99,7 @@ Laporan akhir disusun dalam urutan hierarkis berikut tanpa mengubah urutan stand
   - Identifikasi persoalan nyata pengelolaan operasional data center: risiko alokasi ganda slot rak (*double booking*), inefisiensi pelacakan pengkabelan lintas rak (*cross-connect*), potensi pelanggaran regulasi akses fisik tanpa catatan jejak audit, serta kebutuhan visualisasi spasial 42U secara *real-time*.
 * **III.2 Proses Pelaksanaan & Hambatan/Solusi**:
   - Metodologi pengembangan perangkat lunak (Agile/Scrum: Sprint planning, standup, review).
-  - Tumpukan teknologi (*technology stack*): React 18, TypeScript, Tailwind CSS, TanStack Query pada sisi klien; Laravel 11 Modular (`nwidart/laravel-modules`), Laravel Passport, dan MySQL pada sisi server.
+  - Tumpukan teknologi (*technology stack*): React 18, TypeScript, Tailwind CSS, TanStack Query pada sisi klien; Laravel 11 Modular (*nwidart/laravel-modules*), Laravel Passport, dan MySQL pada sisi server.
   - Kendala teknis (penanganan *race condition* penomoran dan alokasi rak, latensi kueri hierarkis spasial) beserta solusi rekayasanya (*pessimistic locking*, *eager loading optimization*, caching).
   - Hambatan koordinasi tim dan solusinya.
 * **III.3 Pencapaian Hasil & Evaluasi Mitra**:
@@ -115,11 +116,11 @@ Bab ini menjadi inti pertanggungjawaban akademik konversi paket kurikulum Merdek
 * **IV.2 Rekognisi Mata Kuliah Pemrograman Framework (IF261208)**:
   - Arsitektur sisi klien (Frontend): Pemanfaatan React SPA, TypeScript *type safety*, arsitektur komponen modular, *custom hooks* TanStack Query, dan *state management*.
   - Arsitektur sisi server (Backend): Pola arsitektur modular Laravel, pembagian lapisan *Controller*, *Domain Service*, *Form Request*, dan *Eloquent Model*.
-  - Penerapan trait semesta `ScopesOrganization` untuk penegakan *multi-tenancy*.
+  - Penerapan *trait* semesta *ScopesOrganization* untuk penegakan *multi-tenancy*.
 * **IV.3 Rekognisi Mata Kuliah Pemrograman API (IF261217)**:
   - Perancangan RESTful API: Kontrak endpoint representatif, format respon standar JSON, penanganan kode status HTTP.
-  - Mekanisme Keamanan API: Autentikasi OAuth2 *Bearer Token* via Passport guard `api`, otorisasi peran via `ApiPermissionMiddleware`, serta proteksi integrasi IoT sensor via `ApiKeyMiddleware` dengan validasi subnet CIDR IP.
-  - Perancangan Basis Data & ERD: *Physical Data Model* (ERD MySQL) relasi tabel `dc_site`, `dc_site_room`, `dc_rack`, `dc_device`, `dc_network_port`, `dc_visitor_pass`, dsb.
+  - Mekanisme Keamanan API: Autentikasi OAuth2 *Bearer Token* via Passport guard *api*, otorisasi peran via *ApiPermissionMiddleware*, serta proteksi integrasi IoT sensor via *ApiKeyMiddleware* dengan validasi subnet CIDR IP.
+  - Perancangan Basis Data & ERD: *Physical Data Model* (ERD MySQL) relasi tabel *dc_site*, *dc_site_room*, *dc_rack*, *dc_device*, *dc_network_port*, *dc_visitor_pass*, dsb.
 * **IV.4 Rekognisi Mata Kuliah Praktik Kerja Lapangan (IF221129) / MBKM (IF221381)**:
   - Bukti pemenuhan capaian pembelajaran praktik industri di PT Jawa Pos Media Televisi.
   - Integrasi budaya kerja industri, kolaborasi tim, dan kesiapan berkas luaran untuk Seminar Hasil Merdeka Belajar I (IF221379).
