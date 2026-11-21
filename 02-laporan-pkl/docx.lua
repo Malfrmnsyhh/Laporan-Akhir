@@ -293,6 +293,102 @@ function Header(el)
   return el
 end
 
+local ZWS = "\226\128\139"
+
+local function inject_zws(s)
+  s = s:gsub("::", "::" .. ZWS)
+  s = s:gsub("/", "/" .. ZWS)
+  s = s:gsub("_", "_" .. ZWS)
+  s = s:gsub("%.", "." .. ZWS)
+  s = s:gsub("([a-z])([A-Z])", "%1" .. ZWS .. "%2")
+  return s
+end
+
+local function process_table_cell(cell, style_name)
+  local walked = pandoc.walk_block(pandoc.Div(cell.contents), {
+    Str = function(s)
+      return pandoc.Str(inject_zws(s.text))
+    end,
+    Plain = function(p)
+      return pandoc.Para(p.content)
+    end,
+  })
+  cell.contents = {
+    pandoc.Div(walked.content, pandoc.Attr("", {}, { ["custom-style"] = style_name })),
+  }
+  return cell
+end
+
+local function Table(el)
+  if FORMAT ~= "docx" then
+    return nil
+  end
+
+  -- Pastikan seluruh kolom memiliki lebar proporsional terdefinisi
+  local ncols = #el.colspecs
+  if ncols > 0 then
+    local sum_w = 0
+    local missing = false
+    for i = 1, ncols do
+      local w = el.colspecs[i][2]
+      if not w or w <= 0 then
+        missing = true
+      else
+        sum_w = sum_w + w
+      end
+    end
+    if missing or sum_w <= 0 then
+      local eq = 1.0 / ncols
+      for i = 1, ncols do
+        el.colspecs[i][2] = eq
+      end
+    elseif math.abs(sum_w - 1.0) > 0.01 then
+      for i = 1, ncols do
+        el.colspecs[i][2] = el.colspecs[i][2] / sum_w
+      end
+    end
+  end
+
+  -- Proses header rows dengan style TableHeader (10pt bold, rata kiri, spasi rapat)
+  if el.head and el.head.rows then
+    for _, row in ipairs(el.head.rows) do
+      for i, cell in ipairs(row.cells) do
+        row.cells[i] = process_table_cell(cell, "TableHeader")
+      end
+    end
+  end
+
+  -- Proses body rows dengan style TableCell (10pt normal, rata kiri, spasi rapat)
+  if el.bodies then
+    for _, body in ipairs(el.bodies) do
+      if body.head then
+        for _, row in ipairs(body.head) do
+          for i, cell in ipairs(row.cells) do
+            row.cells[i] = process_table_cell(cell, "TableHeader")
+          end
+        end
+      end
+      if body.body then
+        for _, row in ipairs(body.body) do
+          for i, cell in ipairs(row.cells) do
+            row.cells[i] = process_table_cell(cell, "TableCell")
+          end
+        end
+      end
+    end
+  end
+
+  if el.foot and el.foot.rows then
+    for _, row in ipairs(el.foot.rows) do
+      for i, cell in ipairs(row.cells) do
+        row.cells[i] = process_table_cell(cell, "TableCell")
+      end
+    end
+  end
+
+  return el
+end
+
 local function toc_entry(e)
   local style, ind, bold, spacing = "TOC1", 0, "<w:rPr><w:b/></w:rPr>", '<w:spacing w:before="120" w:after="40" w:line="260" w:lineRule="auto"/>'
   if e.level == 2 then
@@ -641,5 +737,5 @@ end
 
 return {
   { Meta = Meta },
-  { Header = Header, Pandoc = Pandoc }
+  { Header = Header, Table = Table, Pandoc = Pandoc }
 }

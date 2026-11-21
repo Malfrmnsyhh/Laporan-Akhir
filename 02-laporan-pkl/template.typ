@@ -164,7 +164,6 @@ $endif$
     #it.body
   ]
 }
-#show table: it => it + par[]
 #show raw.where(block: true): it => {
   block(
     fill: rgb("#f8f9fa"),
@@ -249,8 +248,19 @@ $endif$
   out.join()
 })
 
-#set table(stroke: 0.5pt + luma(140), inset: (x: 5pt, y: 5pt))
-#show table: set text(size: 9.5pt)
+#set table(
+  stroke: 0.5pt + luma(140),
+  inset: (x: 5pt, y: 5pt),
+  align: left,
+)
+#show table: it => {
+  set text(size: 10pt, hyphenate: false)
+  set par(justify: false, leading: 0.55em, first-line-indent: 0pt)
+  show regex("::|/|_|\\."): m => m + sym.zws
+  show regex("[a-z][A-Z]"): m => m.text.slice(0, 1) + sym.zws + m.text.slice(1)
+  it
+  par[]
+}
 #show table.header: set text(weight: "bold")
 #show figure.where(kind: table): set block(breakable: true)
 

@@ -3,7 +3,7 @@
 Pada bagian ini disajikan catatan logbook aktivitas mingguan selama pelaksanaan Praktik Lapangan Kerja (PLK) / Magang Mandiri di PT Jawa Pos Media Televisi (JTV) sesuai format resmi Program Studi Informatika UPN "Veteran" Jawa Timur:
 
 | Minggu / Tanggal | Kegiatan | Hasil | Validasi Pembimbing |
-| :--- | :--- | :--- | :--- |
+| :------------------ | :--------------------------------- | :------------------------------ | :--------------: |
 | **Minggu 1** <br/> (01–05 Agt 2026) | Orientasi kerja, pengenalan tim divisi IT PT Jawa Pos Media Televisi, dan analisis kebutuhan awal sistem ERP MSDC. | Pemahaman arsitektur sistem eksisting dan pembagian tanggung jawab modul *Data Center Operations*. | Disetujui |
 | **Minggu 2** <br/> (08–12 Agt 2026) | Analisis kebutuhan fungsional dan non-fungsional fasilitas fisik data center (*Site*, *Room*, *Rack*). | Dokumen spesifikasi kebutuhan perangkat lunak (SKPL) awal Klaster 1. | Disetujui |
 | **Minggu 3** <br/> (15–19 Agt 2026) | Perancangan skema basis data MySQL untuk tabel *dc_site*, *dc_site_room*, *dc_rack*, dan *dc_rack_allocation*. | Skema *Entity Relationship Diagram* (ERD) dan berkas migrasi database Laravel. | Disetujui |
