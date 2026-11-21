@@ -136,3 +136,22 @@ Engine kompilasi (`template.typ` & `docx.lua`) menghitung penomoran bab dan sub-
 - Seluruh nama modul (misal: *DataCenterOps*, *CorePlatform*, *CrmSales*), kelas (*class*), metode (*method* seperti *NumberSequence::next()*), *header* HTTP (*X-Organization-Id*), nama berkas (*file*), nama tabel basis data, maupun istilah asing **WAJIB** ditulis menggunakan font utama **Times New Roman 12 pt** dengan format **cetak miring (*italic*)**.
 - Hal ini bertujuan agar tipografi dokumen akademik tampak bersih, seragam, dan profesional tanpa adanya font *monospace* yang menyembul tidak beraturan di tengah kalimat narasi.
 
+---
+
+## 6. PANDUAN PENGELOLAAN LOGBOOK KEGIATAN PLK (`03-logbook-pkl/`)
+
+- **Single Source of Truth (SSOT)**: Seluruh pembaruan, penambahan, atau perbaikan catatan logbook kegiatan harian **HANYA dilakukan pada berkas Markdown** di:
+  `03-logbook-pkl/chapters/logbook.md`
+- **DILARANG** menyunting berkas biner `03-logbook-pkl/Logbook_Kegiatan_PLK.docx` atau `Logbook_Kegiatan_PLK.pdf` secara langsung tanpa melalui sumber Markdown.
+- **Perintah Kompilasi Otomatis**:
+  Setiap kali ada perubahan isi logbook pada `chapters/logbook.md`, jalankan perintah kompilasi:
+  ```powershell
+  cd 03-logbook-pkl
+  .\laporan.ps1 build
+  ```
+  Skrip tersebut secara otomatis mengeksekusi generator berbasis `python-docx` (`generate_logbook.py`) untuk menghasilkan `Logbook_Kegiatan_PLK.docx` dengan tata letak, margin 2,54 cm, font Arial 12 pt, blok identitas, dan tabel 4 kolom berulang (*repeating header row*) yang 100% identik dengan berkas acuan `LOGBOOK KEGIATAN PLK.docx`, serta mengekspornya menjadi `Logbook_Kegiatan_PLK.pdf` secara presisi via Word COM Automation.
+- **Struktur Batasan Aktivitas pada SSOT**:
+  - **Aktivitas Terlaksana (Minggu 1–15 / 10 Agustus – 20 November 2026)**: Berisi 67 entri kegiatan harian riil yang selaras dengan riwayat *commit* Git repositori *backend* (`MSDC`) dan *frontend* (`MSDCFrontend`), diakhiri dengan validasi tuntas modul *Data Center Operations* bersama pembimbing lapangan (Pak Triman) pada 19 November 2026.
+  - **Draf Proyeksi Aktivitas (Minggu 16–20 / 23 November – 23 Desember 2026)**: Berisi 19 entri proyeksi kegiatan penyusunan bab-bab laporan magang kampus, pemeliharaan & pengujian regresi sistem, bimbingan dosen/mentor, hingga pertemuan penutup dan serah terima proyek di kantor JTV pada Rabu, 23 Desember 2026.
+
+

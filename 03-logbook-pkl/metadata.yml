@@ -1,0 +1,34 @@
+---
+title: "REKAYASA MODUL DATA CENTER OPERATIONS TERINTEGRASI BERBASIS MODULAR ARCHITECTURE DAN RESTFUL API PADA SISTEM ERP MSDC DI PT. JAWA POS MEDIA TELEVISI (JTV)"
+doc_kind: "LAPORAN AKHIR"
+program: "MAGANG MANDIRI"
+pks_number: "No. PKS: 015/UN63.7/PKS/2024"
+author:
+  - name: "Muhammad Akmal Firmansyah"
+    nim: "24081010291"
+lecturer: "Ardhon Rakhmadi, S.Tr.T., M.Kom."
+lecturer_label: "Dosen Pembimbing:"
+course: "Program Studi Informatika — Fakultas Ilmu Komputer"
+department: "PROGRAM STUDI INFORMATIKA"
+faculty: "FAKULTAS ILMU KOMPUTER"
+institution: "UNIVERSITAS PEMBANGUNAN NASIONAL \"VETERAN\" JAWA TIMUR"
+city: "Surabaya"
+year: "2026"
+date: "Desember 2026"
+logo: "gambar/logo.png"
+cover_logo_width: "4.5cm"
+daftar_gambar: true
+daftar_tabel: true
+preset: "upn-plk"
+csl: "ieee.csl"
+approval:
+  city: "Surabaya"
+  date: "Desember 2026"
+  supervisors:
+    - name: "Ardhon Rakhmadi, S.Tr.T., M.Kom."
+      nip: "199108052024061002"
+      role: "Dosen Pembimbing"
+    - name: "M. Triman Prasodjo, S.T."
+      nip: "-"
+      role: "Pembimbing Lapangan (JTV)"
+...

@@ -1,0 +1,27 @@
+# Preset: UPN "Veteran" Jawa Timur - Laporan PKL (Konversi Mata Kuliah)
+preset_id: "upn-plk"
+name: "UPN 'Veteran' Jawa Timur - Laporan PKL"
+description: "Pedoman Laporan Akhir Praktik Lapangan Kerja (PLK) Prodi Informatika UPN Veteran Jatim (Margin 4-4-3-3, Times New Roman 12pt, Spasi 1.5, First Line Indent 1.27cm, IEEE Citation)."
+
+# Margin halaman (Standar Penjilidan Kampus 4-4-3-3)
+margin_top: 4cm
+margin_bottom: 3cm
+margin_left: 4cm
+margin_right: 3cm
+
+# Tipografi
+font_family: "Times New Roman"
+font_size: 12pt
+line_spacing: 0.75em
+first_line_indent: 1.27cm
+
+# Penomoran Heading (Standar UPN: BAB I, I.1, I.1.1 tanpa titik di akhir)
+heading_chapter_prefix: "BAB "
+heading_chapter_num_format: "roman"
+heading_sub_dot: false
+heading_subsub_dot: false
+
+# Pengaturan Cover
+cover_show_lecturer: false
+cover_logo_width: 4.5cm
+csl: "ieee.csl"
