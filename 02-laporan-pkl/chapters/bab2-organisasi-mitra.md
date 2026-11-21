@@ -58,87 +58,119 @@ Melalui pengembangan modul *Data Center Operations* tersebut, lingkup penugasan 
 
 ## Deskripsi Pekerjaan
 
-Selama melaksanakan Praktik Lapangan Kerja di PT Jawa Pos Media Televisi, penulis ditempatkan pada Unit IT di bawah naungan Direktorat Teknik dengan posisi sebagai *Fullstack Developer* pada Tim 3 (*Data Center Operations*). Dalam posisi ini, penulis memegang tanggung jawab penuh terhadap siklus rekayasa perangkat lunak modul *Data Center Operations* pada sistem MSDC ERP, mulai dari tahap analisis kebutuhan operasional fasilitas fisik, perancangan antarmuka pengguna, pengembangan logika bisnis sisi peladen (*backend*), implementasi antarmuka interaktif sisi klien (*frontend*), hingga pengujian dan integrasi lintas modul. Rincian pelaksanaan pekerjaan pada setiap tahapan diuraikan sebagai berikut:
+Selama melaksanakan Praktik Lapangan Kerja di PT Jawa Pos Media Televisi, penulis ditempatkan pada Unit IT di bawah naungan Direktorat Teknik sebagai *Fullstack Developer* pada Tim 3 (*Data Center Operations*). Dalam penugasan tersebut, penulis berkontribusi sepanjang siklus pengembangan modul *Data Center Operations* (*DataCenterOps*) pada ekosistem MSDC ERP, dimulai dari pengenalan sistem dasar dan analisis kebutuhan, perancangan *design system* serta purwarupa antarmuka, pengembangan logika bisnis sisi peladen (*backend*) dan antarmuka sisi klien (*frontend*), hingga pengujian otomatis, pengelolaan *version control* lintas tim, dan pemaparan progres mingguan bersama Pembimbing Lapangan. Rincian pelaksanaan pekerjaan pada tiap tahap diuraikan ke dalam lima bagian berikut.
 
 ### Tahap Orientasi dan Analisis Kebutuhan Sistem
 
-Pada tahap awal pelaksanaan kegiatan magang (Minggu 1–2, Agustus 2026), penulis menjalani fase orientasi untuk memahami lingkungan kerja teknis perusahaan, mengenal alur koordinasi tim, serta membedah arsitektur dasar sistem perangkat lunak yang akan dikembangkan. Kegiatan yang dilakukan meliputi:
+Pada dua minggu pertama pelaksanaan magang (Minggu 1–2, Agustus 2026), penulis mengikuti pembekalan awal perusahaan, membedah arsitektur dasar proyek MSDC ERP, serta mendalami kondisi operasional fasilitas pusat data sebelum menyusun rancangan sistem. Kegiatan yang dilakukan meliputi:
 
-1. **Perkenalan Lingkungan Kerja dan Struktur Tim**
-   
-   Penulis mengikuti kegiatan orientasi kantor untuk memahami tata kelola kerja dan fasilitas operasional di PT Jawa Pos Media Televisi, khususnya di Gedung Graha Pena lantai 4 dan Kompleks JTV Building Surabaya. Pada sesi ini, penulis diperkenalkan dengan jajaran staf Direktorat Teknik dan pembagian kelompok kerja proyek sistem MSDC ERP. Penulis ditempatkan pada Tim 3 yang bertanggung jawab khusus atas rekayasa modul *Data Center Operations*, serta menyepakati alur komunikasi berkala dan pembagian tanggung jawab peran *Fullstack Developer* bersama mentor industri.
+1. **Perkenalan Lingkungan Kerja, Budaya Organisasi, dan Pembagian Tim**
 
-2. **Pemahaman Arsitektur Dasar Sistem (*Base Project*)**
-   
-   Penulis mempelajari fondasi arsitektur dasar (*base project*) MSDC ERP yang mengadopsi pendekatan arsitektur termodularisasi (*Modular Architecture*) pada kerangka kerja Laravel 11 di sisi peladen dan arsitektur aplikasi laman tunggal (*Single Page Application*) React 18 berbasis TypeScript di sisi klien. Penulis menelaah struktur direktori modul, pola interaksi antar-lapisan kode, serta mekanisme dasar yang telah disiapkan oleh modul *CorePlatform*, seperti standar autentikasi pengguna, manajemen hak akses, dan pola isolasi data multi-penyewa (*multi-tenancy*).
+   Kegiatan magang dibuka dengan pengenalan lingkungan kerja dan tur kantor (*office tour*) di Gedung Graha Pena lantai 4 serta Kompleks JTV Building Surabaya untuk mengenal fasilitas studio, ruang kerja Direktorat Teknik, dan tata tertib perusahaan. Pada pertemuan awal ini dilakukan pembagian modul sistem MSDC ERP beserta penetapan peran masing-masing mahasiswa. Penulis ditempatkan pada Tim 3 yang mengelola modul *Data Center Operations* dengan skema kerja hibrida dan jadwal kehadiran tatap muka (*Work From Office*) rutin setiap hari Kamis.
 
-3. **Observasi Operasional dan Perumusan Kebutuhan Sistem**
-   
-   Penulis melakukan observasi langsung ke area ruang peladen dan mengadakan wawancara mendalam dengan staf Unit IT serta teknisi data center JTV guna mengidentifikasi permasalahan operasional harian fasilitas. Permasalahan utama yang ditemukan mencakup pencatatan alokasi rak server yang masih rentan tumpang tindih (*over-selling*), dokumentasi kabel serat optik yang belum terstruktur, pemantauan telemetri suhu dan kelembaban ruang server yang memerlukan batas aman sesuai standar ASHRAE TC 9.9, serta perlunya penegakan jejak audit akses fisik pos satpam sesuai standar ISO/IEC 27001. Seluruh temuan ini dirumuskan ke dalam dokumen Spesifikasi Kebutuhan Perangkat Lunak (SKPL) yang membagi ruang lingkup modul *Data Center Operations* ke dalam lima klaster fungsional.
+2. **Bedah Arsitektur Dasar Sistem (*Base Project*) dan Kontrak *CorePlatform***
+
+   Sebelum memulai perancangan teknis, penulis mempelajari arsitektur dasar (*base project*) MSDC ERP yang menerapkan pemisahan domain menggunakan *Modular Architecture* (*nwidart/laravel-modules*) pada kerangka kerja Laravel 11 di sisi peladen serta aplikasi laman tunggal (*Single Page Application*) React 18 berbasis TypeScript dan Tailwind CSS di sisi klien. Penelaahan juga difokuskan pada layanan kernel bersama milik modul *CorePlatform*, mencakup autentikasi *OAuth2 Bearer Token* dengan *Laravel Passport*, mekanisme isolasi data multi-organisasi (*multi-tenancy*), penomoran dokumen terpusat, serta dokumentasi rute layanan pada *API Console*.
+
+3. **Observasi Teknis Ruang Peladen dan Pemetaan Kendala Operasional**
+
+   Penulis berdiskusi dengan staf Unit IT serta mengamati alur operasional ruang peladen untuk memetakan hambatan pencatatan di lapangan. Dari pengamatan tersebut, teridentifikasi beberapa kebutuhan mendesak, antara lain belum tersedianya pemetaan visual kapasitas rak server 42U, dokumentasi jalur kabel serat optik antarrak yang masih terpisah, keterbatasan pemantauan ambang suhu ruang peladen, serta pencatatan kunjungan tamu di pos satpam yang masih mengandalkan buku registrasi manual. Selain itu, penulis mengonfirmasikan batasan pertukaran data antara pesanan kontrak dari modul *CRM & Sales* dengan alokasi ruang fisik pusat data.
+
+4. **Perumusan Spesifikasi Kebutuhan Perangkat Lunak (SKPL) Lima Klaster**
+
+   Temuan lapangan tersebut dipetakan terhadap tiga acuan standar industri pusat data. Acuan tersebut mencakup batas suhu dan kelembaban ASHRAE TC 9.9, pedoman struktur pengkabelan TIA-942, serta prinsip keamanan akses fisik dan jejak audit ISO/IEC 27001. Hasil analisis dirumuskan menjadi dokumen Spesifikasi Kebutuhan Perangkat Lunak (SKPL) yang membagi modul *Data Center Operations* ke dalam lima klaster fungsional, mencakup pengelolaan fasilitas fisik, konektivitas jaringan, telemetri lingkungan, operasional harian, dan kendali izin masuk pengunjung berbasis kode QR.
 
 ### Tahap Perancangan Sistem dan Antarmuka (UI/UX)
 
-Memasuki tahap perancangan (Minggu 2–4, Agustus 2026), penulis berfokus pada visualisasi antarmuka pengguna dan pemodelan arsitektur data guna memastikan sistem yang dibangun memiliki tingkat kebergunaan tinggi serta integritas data yang kokoh. Kegiatan yang dilakukan meliputi:
+Memasuki tahap perancangan (Minggu 2–4, Agustus hingga awal September 2026), penulis menyusun standar tampilan antarmuka lintas modul dan memodelkan struktur data relasional agar implementasi kode memiliki acuan teknis yang seragam. Kegiatan yang dilakukan meliputi:
 
-1. **Perancangan *Design System* dan Purwarupa Antarmuka di Figma**
-   
-   Penulis merumuskan sistem desain (*design system*) antarmuka berbasis perangkat lunak Figma dengan mengadopsi identitas visual korporat JTV, memadukan palet warna biru tua (*Navy* #002655), jingga (*Orange* #FF6C00), dan putih (*White* #FFFFFF). Penulis merancang hierarki tata letak, komponen tombol, formulir masukan, serta modal dialog yang ramah pengguna (*user-friendly*). Purwarupa interaktif dengan ketelitian tinggi (*high-fidelity prototype*) yang dirancang penulis dievaluasi bersama mentor industri dan secara resmi disepakati menjadi standar acuan antarmuka terpadu bagi seluruh tim pengembang modul di ekosistem MSDC ERP.
+1. **Penyusunan *Design System* Korporat JTV di Figma**
 
-2. **Pemodelan Aliran Data dan Alur Pengguna**
-   
-   Penulis menyusun diagram aliran data (*Data Flow Diagram* / DFD Level 0, Level 1, dan Level 2) guna menggambarkan alur perpindahan data antar-entitas di dalam modul *Data Center Operations*. Penulis juga memetakan skenario alur pengguna (*User Flow*) untuk memandu navigasi operasional yang intuitif, terutama pada alur pemesanan dan alokasi unit rak server secara bertahap, alur penugasan perintah kerja teknisi lapangan (*Work Order*), serta siklus pengajuan, persetujuan, dan verifikasi izin kunjungan tamu pos satpam.
+   Menindaklanjuti instruksi mentor industri agar setiap tim menyusun konsep tampilan ERP MSDC, penulis membangun *design system* di Figma berlandaskan identitas visual logo JTV. Palet warna utama memadukan biru tua (*Navy* #002655), jingga (*Orange* #FF6C00), dan putih (*White* #FFFFFF), disertai warna sekunder serta tipografi *Inter* untuk tajuk dan *Poppins* untuk teks isi. Pustaka komponen dasar yang disiapkan mencakup variasi tombol (*solid*, *outline*, *ghost*, *disabled*), bidang formulir masukan dengan status fokus dan pesan validasi, aturan spasi, serta pola navigasi multi-level. Setelah dipresentasikan bersama mentor, rancangan sistem warna dan tata letak tersebut dipilih sebagai rujukan desain lintas modul ERP MSDC.
 
-3. **Perancangan Skema Basis Data dan Kontrak *RESTful API***
-   
-   Penulis menyusun pemodelan fisik basis data relasional (*Physical Data Model*) pada sistem manajemen basis data MySQL 8. Skema dirancang dengan menerapkan indeks unik majemuk (*composite unique index*) pada penomoran dokumen dan pemetaan port jaringan guna mencegah terjadinya duplikasi data saat sistem diakses secara simultan. Selain itu, penulis menyusun dokumen spesifikasi kontrak antarmuka *RESTful API*, menentukan struktur *endpoint* yang representatif, serta membakukan format respons JSON seragam yang memuat status keberhasilan, pesan sistem, muatan data, dan rincian penanganan galat.
+2. **Perancangan Purwarupa Interaktif Seluruh Halaman Operasional DC Ops**
+
+   Berangkat dari *design system* yang telah ditetapkan, penulis merancang purwarupa fidelitas tinggi (*high-fidelity prototype*) untuk dasbor utama MSDC dan seluruh halaman kerja modul *Data Center Operations*. Cakupannya meliputi halaman *Dashboard* operasional, *Site Manager*, *Room Manager*, *Rack Manager* dengan bagan elevasi U1 hingga U42, *Monitoring Rack* beserta panel pengaturan ambang alarm, serta formulir enam seksi untuk *Device Inventory*. Rancangan juga dilengkapi antarmuka *Cross-Connect*, *OTB Inventory*, *IPAM*, *Ticket & Remote Hands*, *Work Order*, dan *Usage Records*. Penulis menyesuaikan ulang (*re-skinning*) komponen serta memeriksa kesesuaian formulir terhadap parameter *API Console* hingga hasil akhir perancangan disetujui Pembimbing Lapangan pada awal September 2026.
+
+3. **Pemodelan Aliran Data (*Data Flow Diagram*) dan Alur Pengguna (*User Flow*)**
+
+   Untuk memperjelas alur proses bisnis sebelum pengkodean, penulis menyusun *Data Flow Diagram* (DFD) guna memetakan pergerakan data antar-entitas. Alur yang dipetakan meliputi pencatatan master fasilitas, pemetaan port jaringan, pembacaan sensor lingkungan, hingga penerbitan dokumen perintah kerja. Di samping itu, disusun pula diagram *User Flow* untuk skenario utama, seperti pemilihan slot rak 42U, relokasi perangkat antar-rak, penugasan teknisi lapangan, serta siklus pendaftaran dan pemeriksaan izin kunjungan tamu di pos satpam.
+
+4. **Perancangan Skema Basis Data Relasional MySQL dan Kontrak *RESTful API***
+
+   Pada aspek pemodelan data, penulis menyusun relasi antartabel pada MySQL 8 yang menghubungkan entitas *Site*, *Room*, *Rack*, *Device*, *Network Port*, *OTB*, *Cross-Connect*, *IPAM*, *Monitoring*, *Work Order*, *CCTV*, dan *Visitor Pass*. Skema dilengkapi indeks unik majemuk (*composite unique index*) agar tidak terjadi duplikasi nama port pada perangkat yang sama maupun benturan nomor dokumen transaksi. Kontrak *RESTful API* berformat respons JSON terstandarisasi turut diselaraskan dan diuji awal melalui Postman sebelum tahap pengembangan kode dimulai.
 
 ### Tahap Pengembangan Sisi Peladen (Backend)
 
-Pada fase pengembangan logika bisnis dan manajemen data (September – November 2026), penulis mengimplementasikan fungsionalitas sisi peladen pada direktori *Modules/DataCenterOps/* dengan kerangka kerja Laravel 11. Kegiatan yang dilakukan meliputi:
+Pada fase implementasi sisi peladen (September hingga November 2026), penulis mengembangkan layanan domain, migrasi tabel, pengendali rute, dan lapisan keamanan pada direktori *Modules/DataCenterOps/* berbasis kerangka kerja Laravel 11 Modular. Kegiatan yang dilakukan meliputi:
 
-1. **Implementasi Arsitektur Modular dan Lapisan Pengendali**
-   
-   Penulis membangun struktur kode modular dengan menerapkan prinsip pemisahan tanggung jawab (*Separation of Concerns*). Penulis mengonfigurasi pendaftaran rute API terisolasi, merancang lapisan pengendali (*Controller Layer*) untuk menangani permintaan HTTP, serta mengimplementasikan lapisan validasi masukan formulir (*Form Request Layer*). Validasi otomatis ini memastikan seluruh parameter kueri, format teks, dan batas ambang data telah terverifikasi sebelum diproses ke lapisan logika bisnis.
+1. **Struktur Modular *Controller*, *Form Request*, dan Isolasi *Multi-Tenancy***
 
-2. **Pengembangan Logika Layanan Domain dan Kendali Konkurensi**
-   
-   Penulis mengembangkan lapisan layanan (*Domain Service Layer*) yang menangani kalkulasi okupansi unit rak 42U, pelepasan interkoneksi kabel secara otomatis saat suatu port jaringan dihapus, manajemen alokasi blok alamat IP (*IP Address Management* / IPAM), serta pembangkitan token kode QR terenkripsi untuk izin kunjungan fasilitas. Untuk mengantisipasi lonjakan transaksi pemesanan rak bersamaan yang berisiko memicu tabrakan data (*race condition*), penulis menerapkan transaksi basis data atomik serta kendali konkurensi pesimistis (*pessimistic locking*) melalui pemanggilan instruksi *lockForUpdate()*.
+   Kode pada direktori *Modules/DataCenterOps/* dipisahkan berdasarkan tanggung jawab antara berkas rute API, *Controller* (*NetworkController*, *IpamController*, *MonitoringController*, *VisitorPassController*, *CctvCameraController*, dan pengendali entitas fasilitas), *API Resource*, *Form Request* untuk validasi masukan, serta lapisan *Service*. Isolasi data antar-organisasi ditegakkan melalui *trait* *ScopesOrganization* yang menyaring kueri otomatis berdasarkan *header* *X-Organization-Id*. Sementara itu, pembatasan hak akses per aksi diatur menggunakan *Spatie Permission* melalui *ApiPermissionMiddleware*.
 
-3. **Integrasi Isolasi *Multi-Tenancy* dan Keamanan *Middleware***
-   
-   Penulis menyematkan *trait* *ScopesOrganization* pada seluruh model entitas fasilitas (*Site*, *Room*, *Rack*, *Device*, *Network Port*, dan *Visitor Pass*) yang secara otomatis memfilter kueri basis data berdasarkan *header* *X-Organization-Id*, menjamin data antar-penyewa terisolasi secara aman. Penulis juga mengintegrasikan sistem autentikasi berbasis token Sanctum, otorisasi peran via *ApiPermissionMiddleware*, pengamanan sensor telemetri via *ApiKeyMiddleware* yang dilengkapi pencocokan subnet *CIDR IP Whitelist*, serta menghubungkan modul dengan *WorkflowEngineService* untuk mekanisme persetujuan bertingkat.
+2. **Layanan Hierarki Fasilitas Fisik (*Site*, *Room*, *Rack* 42U), *Delete Guards*, dan Kendali Konkurensi**
+
+   Penulis mengembangkan layanan pengelolaan fasilitas fisik yang mencakup daftar dan pencarian gedung serta ruangan. Mekanisme pengaman penghapusan ruangan (*room deletion safeguard*) ditambahkan untuk memeriksa ketergantungan rak dan perangkat aktif sebelum penghapusan diizinkan. Penulis juga membangun *event listener* *HandleContractTerminatedInDcOps* untuk pembuatan tiket pembongkaran dan pelepasan alokasi rak otomatis ketika kontrak pelanggan berakhir. Pada mutasi alokasi rak serta penomoran dokumen (*NumberSequence* dan *pass_number*), diterapkan transaksi basis data atomik bersama penguncian pesimistis (*pessimistic locking* via *lockForUpdate()*) guna mencegah tabrakan data (*race condition*).
+
+3. **Subsistem Konektivitas Jaringan (*Device*, *Network Port*, *Cross-Connect*, *OTB*, dan *IPAM*)**
+
+   Untuk lapisan konektivitas, penulis membangun pengelolaan penuh *Network Port* pada *NetworkController* dan *NetworkService*. Fitur ini meliputi *endpoint* daftar port dengan *eager loading* relasi dan pencarian multi-kolom, migrasi kolom *mac_address* serta *ip_address* beserta validasi format, pengecekan keunikan *port_name* per perangkat dengan pengecualian *self-ignore* saat pembaruan, serta pelepasan interkoneksi otomatis (*interconnect release*) ketika port dihapus. Mutasi siklus hidup *Cross-Connect* dibungkus ke dalam transaksi basis data agar tetap sinkron dengan status port *OTB*, disertai penghitungan jumlah port tersedia pada daftar *OTB* dan pencarian pelanggan pada *Cross-Connect*. Pada *IpamService*, penulis mengimplementasikan pembaruan serta penghapusan subnet yang dilindungi *allocation guard* agar subnet dengan alamat IP aktif tidak dapat dihapus.
+
+4. **Layanan Operasional Harian, Telemetri ASHRAE TC 9.9, dan Pengawasan CCTV *Anti-SSRF***
+
+   Pada domain operasional harian, penulis menyelaraskan layanan *Ticket*, *Work Order*, *Usage Records & Billing*, serta menambahkan validasi *module_code* pada *DocumentController* untuk surat operasional *data center* berbasis kode QR publik. Zona waktu bisnis *Asia/Jakarta* (WIB) turut diterapkan pada jadwal *shift* petugas jaga agar perhitungan waktu operasional konsisten. Pada *MonitoringService*, penulis mengimplementasikan evaluasi ambang batas ganda (*dual-bounds threshold* batas atas dan batas bawah) sesuai standar ASHRAE TC 9.9 beserta *endpoint* ringkasan telemetri seluruh rak. Selain itu, dibangun layanan pengawasan CCTV pada *CctvCameraService* dan *CctvStreamProbeService* yang dilengkapi proteksi *Anti-SSRF*, pemeriksaan aliran media via *ffprobe*, serta perintah penjadwalan *CctvHealthCheckCommand* untuk memantau status kamera secara berkala.
+
+5. **Keamanan Akses Fisik *Visitor Pass* QR Dinamis dan Autentikasi *Laravel Passport***
+
+   Seluruh *endpoint* operasional yang membutuhkan identitas pengguna diamankan memakai autentikasi *Laravel Passport* berbasis *OAuth2 Bearer Token*, sementara jalur pembacaan telemetri eksternal dibatasi melalui *ApiKeyMiddleware*. Pada sisi keamanan akses fisik berstandar ISO/IEC 27001, penulis merancang dan membangun sistem *Visitor Pass* pada *VisitorPassService*. Fitur utamanya mencakup dua mode penerbitan (undangan langsung dan pendaftaran mandiri publik dengan token *SHA-256*), alur persetujuan operator, dekripsi token QR berprinsip *fail-closed*, serta pencegahan pemindaian ulang (*anti-replay attack* melalui *ReplayAttemptException*). Penulis juga menerapkan verifikasi lokasi pos jaga satpam, proses *check-out* yang idempoten, penyaringan respons rute publik (*response whitelisting*), penjadwal deteksi tamu melewati batas waktu (*CheckVisitorPassStatusCommand*), dan migrasi pengiriman notifikasi ke *NotificationService* terpusat melalui *transactional hooks*.
 
 ### Tahap Pengembangan Sisi Klien (Frontend)
 
-Sejalan dengan kesiapan antarmuka pemrograman aplikasi di sisi peladen, penulis melaksanakan implementasi sisi klien (September – November 2026) pada direktori *src/modules/data-center-ops/* menggunakan kombinasi React 18, TypeScript, dan Tailwind CSS. Kegiatan yang dilakukan meliputi:
+Mengiringi pengembangan layanan API di sisi peladen, penulis mengimplementasikan antarmuka pengguna modular pada direktori *src/modules/data-center-ops/* (September hingga November 2026) dengan memanfaatkan React 18, Vite, TypeScript, dan Tailwind CSS. Kegiatan yang dilakukan meliputi:
 
-1. **Pengembangan Komponen Antarmuka Modular dan Navigasi ERP**
-   
-   Penulis membangun halaman-halaman operasional modul *Data Center Operations* ke dalam komponen-komponen antarmuka yang dapat digunakan kembali (*reusable components*). Penulis juga berkontribusi dalam standardisasi sistem navigasi global *2-Tier Sidebar* pada tata letak utama ERP, yang membagi menu navigasi menjadi bilah modul tingkat atas dan bilah submenu fungsional tingkat bawah, sehingga memudahkan pengguna berpindah antarmenu secara konsisten dan efisien.
+1. **Standardisasi Tata Letak Navigasi Global *2-Tier Sidebar* ERP**
 
-2. **Pembangunan Komponen Visualisasi Elevasi Rak 42U**
-   
-   Penulis mengimplementasikan komponen visualisasi interaktif *Visual 42U Elevation Grid* (*RackVisualPicker*) yang memetakan keterisian setiap slot unit rak peladen secara vertikal. Komponen ini menampilkan status fisik rak secara seketika (*real-time*), membedakan slot kosong, slot yang telah direservasi, serta slot yang telah terpasang perangkat peladen, lengkap dengan indikator konsumsi daya listrik dalam satuan Watt guna mencegah kelebihan beban listrik pada panel distribusi.
+   Selain membangun modul *Data Center Operations*, penulis menerima penugasan khusus dari mentor industri untuk merancang ulang kerangka navigasi utama aplikasi ERP. Tata letak *2-Tier Sidebar* diimplementasikan dengan memisahkan rel ikon modul pada tingkat pertama dan bilah submenu kontekstual pada tingkat kedua, dipadukan bersama *TopBar* responsif, peta ikon *Lucide React*, serta perbaikan penandaan rute aktif (*active route highlighting*). Pengelompokan menu dan definisi rute tersebut kemudian diselaraskan lintas enam modul ERP (*Core Platform*, *CRM & Sales*, *Finance & Accounting*, *Data Center Operations*, *HR & Service Support*, dan *Procurement & Inventory*) agar navigasi seragam di seluruh sistem.
 
-3. **Implementasi Pemindai Kode QR dan Sinkronisasi Data Asinkron**
-   
-   Penulis mengembangkan antarmuka pemindai kode QR (*Scanner Guard*) khusus untuk pos satpam menggunakan kamera web peramban secara langsung (*HTML5 BarcodeDetector* dan pustaka *jsQR*) guna memvalidasi izin kunjungan tamu secara mandiri tanpa memerlukan perangkat pemindai fisik tambahan. Selain itu, penulis mengintegrasikan penampil siaran langsung kamera pengawas (*CCTV*) lorong rak server berbasis pustaka *hls.js*, serta mengoptimalkan sinkronisasi data asinkron, manajemen *caching*, dan penanganan galat jaringan (*retry mechanism*) menggunakan pustaka *TanStack Query v5*.
+2. **Halaman Manajemen Fasilitas Fisik dan Komponen Interaktif *RackVisualPicker* 42U**
 
-### Tahap Pengujian, Kolaborasi Tim, dan Presentasi Progres
+   Penulis membangun halaman operasional fasilitas fisik yang meliputi *SiteListPage* dan *SiteDetailPage*, dilengkapi integrasi peta lokasi *Google Maps* pada *SiteInfoCard*. Pada tingkat ruangan dan rak, dikembangkan *RoomListPage* dengan fitur *Smart Room Code Generator* serta *RackListPage* dan *RackDetailPage* yang menampilkan keterisian kapasitas secara seketika. Komponen pemilih elevasi vertikal 42U (*RackVisualPicker*) turut dikembangkan dan diekstraksi menjadi komponen pakai ulang. Komponen ini memetakan status setiap slot unit rak (kosong, direservasi, atau terisi) beserta beban daya dalam satuan Watt, dan dilengkapi modal pelepasan slot rak kustom.
 
-Tahap pengujian dan koordinasi tim dilaksanakan secara berkelanjutan sepanjang periode magang (Agustus – Desember 2026) guna menjamin kestabilan perangkat lunak dan keselarasan integrasi sistem lintas modul. Kegiatan yang dilakukan meliputi:
+3. **Antarmuka Inventaris Perangkat, *Network Port*, *Cross-Connect*, *OTB*, dan *IPAM***
 
-1. **Pengujian Fungsional API dan Simulasi Konkurensi**
-   
-   Penulis menyusun rangkaian pengujian fitur otomatis (*automated feature tests*) pada kerangka kerja Laravel untuk memvalidasi kebenaran logika bisnis *backend*, mencakup pengujian toleransi ambang batas suhu dan kelembaban (*dual-bounds*), integritas alokasi subnet IPAM, serta proteksi terhadap serangan pemalsuan tiket tamu (*anti-replay attack*). Penulis juga melakukan pengujian konkurensi data melalui eksekusi kueri simultan guna memastikan transaksi pemesanan rak berjalan stabil tanpa insiden data ganda, dilanjutkan dengan pengujian penerimaan pengguna (*User Acceptance Testing*) di lingkungan *staging server* JTV.
+   Pada kelompok manajemen jaringan, penulis merombak halaman *DeviceListPage* dan *DeviceDetailPage* serta membangun halaman master port jaringan (*NetworkPortListPage*). Halaman tersebut dilengkapi kartu KPI, bilah penyaring, dan modal *DevicePortFormModal* yang memvalidasi format *MAC address* serta *IP address* lalu menampilkannya sebagai lencana pada tabel. Penulis juga menyusun antarmuka pengelolaan *Cross-Connect* (lengkap dengan *CrossConnectReleaseModal* dan *CrossConnectRepairModal*) serta halaman manajemen tray serat optik *OTB*. Untuk pengelolaan alamat jaringan, dasbor dan rincian subnet *IPAM* dikembangkan agar mendukung visualisasi pemakaian blok IP, pencarian distribusi pelanggan, serta alokasi alamat IP untuk perangkat internal maupun penyewa.
 
-2. **Pengelolaan *Version Control* Git dan Integrasi Lintas Tim**
-   
-   Penulis menerapkan praktik kendali versi Git yang terstruktur dengan membagi pengerjaan fitur ke dalam cabang-cabang spesifik (*feature branches*) sebelum digabungkan melalui mekanisme *Pull Request* resmi. Penulis berkoordinasi secara aktif dengan tim pengembang modul lain, khususnya Tim *CorePlatform* untuk sinkronisasi token autentikasi, Tim *CRM & Sales* untuk alur reservasi rak dari pesanan komersial, Tim *Finance* untuk verifikasi tagihan pemakaian listrik (*usage billing*), serta Tim *HR & Customer Support* untuk tindak lanjut tiket gangguan fasilitas.
+4. **Dasbor Operasional NOC, Grafik Telemetri, Pemutar CCTV, dan Pemindai QR Pos Satpam**
 
-3. **Presentasi Progres Mingguan dan Konsultasi dengan Mentor**
-   
-   Setiap hari Kamis selama jadwal kerja tatap muka (*Work From Office*) di kantor JTV Surabaya, penulis mempresentasikan kemajuan hasil pekerjaan di hadapan Pembimbing Lapangan dan Mentor Industri, Bapak M. Triman Prasodjo, S.T. Sesi presentasi mingguan ini dimanfaatkan penulis untuk mendemonstrasikan fitur baru yang telah selesai diuji, membahas kendala teknis yang dihadapi, serta menerima masukan dan arahan strategis guna menyempurnakan aspek teknis maupun alur bisnis modul *Data Center Operations*.
+   Halaman utama *DashboardPage* dirancang untuk kebutuhan ruang kendali NOC dengan menggabungkan *SystemStatusBanner*, kartu metrik KPI, *ActiveAlarmsSection* yang terhubung langsung ke API, *InfrastructureStatusCard*, serta *StaffOnDuty* dengan perhitungan jadwal *shift* zona waktu WIB. Untuk pemantauan lanjutan, penulis membangun *RackMonitoringDashboardPage* beserta grafik tren suhu dan daya vertikal dengan garis ambang batas ganda (*dual-threshold*). Modul pengawasan visual diwujudkan melalui halaman kisi kamera *CctvListPage* dan *HlsPlayer* berbasis pustaka *hls.js* berfitur *lazy-loading* serta kontrol *Live-Sync Jump*. Pada bagian operasional harian, dikembangkan halaman *Ticket*, *Work Order* beserta modal alokasi sumber daya, *Usage Records*, serta siklus lengkap *Surat DC Ops* (pembuatan draf, penyuntingan, persetujuan, tanda tangan digital, hingga pratinjau PDF). Sementara itu, klaster akses fisik dilengkapi halaman registrasi publik tamu, tampilan tiket fisik *VisitorPassTicket* dengan *Local QR Encoder*, modal persetujuan operator beserta daftar periksa kepatuhan, serta antarmuka pos jaga satpam (*Scanner Guard*) yang memindai kode QR melalui kamera peramban (*HTML5 BarcodeDetector* dan *jsQR*) dengan konfirmasi dua langkah.
+
+5. **Pengelolaan *State* Asinkron *TanStack Query*, Paginasi Tabel, dan Penyempurnaan Validasi Antarmuka**
+
+   Guna menjaga responsivitas aplikasi saat menangani data bervolume besar, penulis memanfaatkan *TanStack Query v5* untuk manajemen *caching* dan sinkronisasi data asinkron. Pendekatan ini mengeliminasi pemanggilan berulang (*N+1 query loop*) pada panel alokasi *IPAM* dan dasbor utama, sementara *polling backoff* bertingkat diterapkan pada halaman pendaftaran tamu publik agar beban jaringan terkendali. Penulis juga menambahkan paginasi sisi peladen (*server-side pagination*) dengan cadangan klien hibrida pada daftar perangkat, *OTB*, rak, dan *Cross-Connect*. Seluruh tabel modul kini memiliki tampilan galat jaringan beserta tombol coba lagi (*error state and retry handling*), sedangkan dialog bawaan peramban (*window.alert* dan *window.confirm*) diganti menjadi modal konfirmasi kustom MSDC disertai pembersihan kode tidak terpakai dan pengetatan tipe data TypeScript.
+
+### Tahap Pengujian, Kolaborasi Tim, dan Konsultasi Mentor
+
+Pengujian sistem, kerja sama lintas divisi pengembang, dan evaluasi berkala bersama Pembimbing Lapangan dijalankan secara paralel sepanjang periode magang (Agustus hingga Desember 2026) untuk menjaga keandalan perangkat lunak hingga tahap serah terima. Kegiatan yang dilakukan meliputi:
+
+1. **Pengujian Fitur Otomatis (*Automated Feature Tests*) dan Simulasi Konkurensi**
+
+   Pada sisi peladen Laravel, penulis menyusun rangkaian pengujian fitur otomatis (*automated feature tests*) guna memverifikasi kelayakan logika bisnis setiap kali fitur baru ditambahkan. Pengujian mencakup validasi *MAC/IP address* dan keunikan nama port jaringan, *allocation guard* pada penghapusan subnet *IPAM*, evaluasi alarm ambang batas ganda pada telemetri seluruh rak, verifikasi alur *Visitor Pass* termasuk proteksi *anti-replay*, serta pengujian *CctvStreamProbeService* *Anti-SSRF* dan penjadwal pemeriksaan kamera. Skenario eksekusi kueri bersamaan turut disimulasikan untuk menguji konsistensi transaksi atomik dan *pessimistic locking* pada alokasi slot rak maupun nomor dokumen.
+
+2. **Pengujian Penerimaan Pengguna (*User Acceptance Testing*) di *Staging Server* JTV**
+
+   Setiap fitur yang telah lulus pengujian lokal diverifikasi kembali pada lingkungan *staging server* JTV melalui pengujian *end-to-end* bersama tim dan mentor. Pengujian meliputi uji alur pendaftaran tamu publik hingga pemindaian QR memakai kamera peramban di pos satpam, uji siaran langsung CCTV dual-mode (*RTMP* dan *HLS*) menggunakan peladen *MediaMTX*, serta pemeriksaan regresi antarmuka pasca-penggabungan kode. Kelima klaster fungsional modul *Data Center Operations* berhasil menjalani validasi akhir secara tuntas di hadapan Pembimbing Lapangan pada tanggal 19 November 2026.
+
+3. **Pengelolaan *Version Control* Git secara Granular dan *Pull Request***
+
+   Pengembangan kode pada repositori *MSDC* (*backend*) dan *MSDCFrontend* (*frontend*) dikelola menggunakan alur cabang fitur (*feature branches*) yang terisolasi dari cabang utama. Beberapa cabang kerja yang digunakan antara lain *team3/akmal*, *team3/final-dc-ops*, *update-navbar*, *dc-ops/add-feature-visitor-qr*, *dc-ops/cctv-integration*, dan *team3/update*. Setiap perubahan dipecah ke dalam *commit* granular per lapisan fungsi dan diajukan melalui *Pull Request* resmi disertai verifikasi *build* lokal serta penyelesaian konflik penggabungan (*merge conflict*) sebelum masuk ke cabang *main*.
+
+4. **Sinkronisasi Integrasi Lintas Tim Modul ERP**
+
+   Karena modul *Data Center Operations* saling bergantung dengan layanan modul lain dalam satu ekosistem ERP, penulis berkoordinasi aktif lintas tim pengembang. Bersama Tim *CorePlatform*, koordinasi difokuskan pada hak akses *Spatie Permission*, token *Laravel Passport*, *WorkflowEngineService*, *NotificationService*, dan validasi dokumen persuratan. Bersama Tim *CRM & Sales*, penulis menyelaraskan keterkaitan data pelanggan serta kontrak pada reservasi rak, *Cross-Connect*, dan penjamin *Visitor Pass*. Selain itu, dilakukan sinkronisasi dengan Tim *Finance* untuk pencatatan *Usage Records* dan penagihan jasa *Remote Hands*, serta bersama Tim *HR & Customer Support* untuk jadwal *shift* petugas jaga dan tata letak navigasi antarmodul.
+
+5. **Presentasi Progres Mingguan dan Konsultasi dengan Pembimbing Lapangan**
+
+   Pada jadwal *Work From Office* setiap hari Kamis di kantor JTV Surabaya, penulis memaparkan progres pengembangan di hadapan Bapak M. Triman Prasodjo, S.T. selaku Direktur Teknik sekaligus Pembimbing Lapangan. Sesi rutin ini diisi dengan demonstrasi langsung fitur yang telah diuji, pembahasan kendala teknis, serta pencatatan masukan perbaikan dari mentor. Masukan yang ditindaklanjuti meliputi penyempurnaan tata letak kartu fisik *Visitor Pass*, penambahan daftar periksa kepatuhan persetujuan operator, penyeragaman navigasi global ERP, serta penyusunan koleksi dokumentasi API dan panduan pengguna (*User Manual*) bagi operator NOC.
 
 ## Jadwal Kerja
 
