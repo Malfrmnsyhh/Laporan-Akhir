@@ -135,19 +135,18 @@ $endif$
 ]
 
 #show heading.where(level: 2): it => {
-  block(above: 1.0em, below: 0.5em)[
+  block(above: 1.0em, below: 0.5em, sticky: true)[
     #text(size: 12pt, weight: "bold")[#it]
   ]
-  par(leading: 0.75em)[]
 }
 
 #show heading.where(level: 3): it => {
-  block(above: 0.8em, below: 0.4em)[
+  block(above: 0.8em, below: 0.4em, sticky: true)[
     #text(size: 12pt, weight: "bold")[#it]
   ]
-  par(leading: 0.75em)[]
 }
 
+#show figure.where(kind: image): set block(breakable: false)
 #show figure: it => it + par[]
 #show list: it => it + par[]
 #show enum: it => it + par[]
@@ -263,6 +262,7 @@ $endif$
 }
 #show table.header: set text(weight: "bold")
 #show figure.where(kind: table): set block(breakable: true)
+#show figure.where(kind: table): set figure.caption(position: top)
 
 #set figure.caption(position: bottom)
 #show raw.where(block: true): set text(font: "DejaVu Sans Mono", size: 9pt)
@@ -402,7 +402,7 @@ $endif$
       #text(size: 10.5pt)[$it.role$] \
       #v(2.2cm)
       #text(size: 10.5pt, weight: "bold")[$it.name$] \
-      $if(it.nip)$#text(size: 9.5pt)[NIP. $it.nip$]$endif$
+      $if(it.nip)$#if "$it.nip$" != "-" [#text(size: 9.5pt)[NIP. $it.nip$]]$endif$
     ],
     $endfor$
   )
