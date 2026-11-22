@@ -174,7 +174,7 @@ Pengujian sistem, kerja sama lintas divisi pengembang, dan evaluasi berkala bers
 
 ## Jadwal Kerja
 
-Praktik Lapangan Kerja di PT Jawa Pos Media Televisi dilaksanakan selama 5 bulan (20 minggu), terhitung sejak tanggal 10 Agustus 2026 sampai dengan 23 Desember 2026. Alokasi waktu kerja mengikuti standar jam operasional Divisi TI perusahaan, yaitu 8 jam per hari kerja dari hari Senin hingga Jumat (pukul 08.30 WIB – 16.30 WIB), setara dengan 40 jam aktivitas pembelajaran per pekan. Akumulasi total waktu selama 20 minggu menghasilkan lebih dari 800 jam kerja efektif, yang memenuhi secara penuh persyaratan konversi 20 Satuan Kredit Semester (SKS) kurikulum Merdeka Belajar Kampus Merdeka.
+Praktik Lapangan Kerja di PT Jawa Pos Media Televisi dilaksanakan selama 5 bulan (20 minggu), terhitung sejak tanggal 10 Agustus 2026 sampai dengan 23 Desember 2026. Di samping jam kerja operasional inti Divisi TI pada hari Senin hingga Jumat (pukul 08.30 WIB hingga 16.30 WIB atau setara 40 jam per pekan), penulis mengalokasikan waktu tambahan secara rutin untuk pengembangan fitur, *debugging*, sinkronisasi integrasi lintas modul, serta penyusunan dokumentasi teknis. Dengan pola tersebut, total intensitas kerja mencapai 50 hingga 60 jam per pekan dan menghasilkan akumulasi melampaui 1.000 jam kerja efektif selama 20 minggu, sehingga melebihi syarat minimal 900 jam untuk konversi 20 Satuan Kredit Semester (SKS) kurikulum Merdeka Belajar Kampus Merdeka.
 
 Pelaksanaan magang mengadopsi skema kerja hibrida (*hybrid working system*):
 
