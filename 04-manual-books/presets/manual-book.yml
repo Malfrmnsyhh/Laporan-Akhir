@@ -1,0 +1,22 @@
+# Preset: Buku Panduan (Manual Book) HKI Program Komputer - ERP MSDC
+preset_id: "manual-book"
+name: "Manual Book HKI Program Komputer - ERP MSDC"
+description: "Format Buku Panduan (Manual Book) resmi HKI Program Komputer: Sampul grafis full-bleed A4, Daftar Isi halaman i, Bab I-V bernomor Arab mulai halaman 1, tipografi operasional modern."
+
+# Margin halaman isi (A4 Manual Book)
+margin_top: 2.5cm
+margin_bottom: 2.5cm
+margin_left: 2.5cm
+margin_right: 2.5cm
+
+# Tipografi
+font_family: "Times New Roman"
+font_size: 12pt
+line_spacing: 0.65em
+first_line_indent: 0cm
+
+# Penomoran Heading (BAB I, 1.1, 1.1.1)
+heading_chapter_prefix: "BAB "
+heading_chapter_num_format: "roman"
+heading_sub_dot: false
+heading_subsub_dot: false

@@ -1,0 +1,24 @@
+---
+title: "BUKU PANDUAN MODUL DATA CENTER OPERATIONS — ERP MICRO SCALE DATA CENTER (MSDC)"
+doc_kind: "BUKU PANDUAN"
+program: "HKI PROGRAM KOMPUTER"
+cover_image: "gambar/cover-buku-panduan.png"
+author:
+  - name: "Muhammad Akmal F"
+    nim: "24081010291"
+  - name: "Najaf Ali"
+    nim: "24081010255"
+  - name: "Prof. Dr. Basuki Rahmat, S.Si., M.T."
+    nim: "196907232021211002"
+  - name: "Ardhon Rakhmadi, S.Tr.T., M.Kom."
+    nim: "199108052024061002"
+  - name: "M.Triman Prasodjo, S.T."
+    nim: ""
+institution: "UNIVERSITAS PEMBANGUNAN NASIONAL \"VETERAN\" JAWA TIMUR & PT JAWA POS MEDIA TELEVISI (JTV)"
+city: "Surabaya"
+year: "2025-2026"
+date: "November 2026"
+daftar_gambar: false
+daftar_tabel: false
+preset: "manual-book"
+...
