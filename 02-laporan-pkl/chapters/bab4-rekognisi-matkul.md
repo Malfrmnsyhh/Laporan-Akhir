@@ -1,54 +1,122 @@
 # REKOGNISI KEGIATAN PLK DENGAN KONVERSI MATA KULIAH
 
+Pelaksanaan Praktik Lapangan Kerja (PLK) di Unit IT PT Jawa Pos Media Televisi (JTV) direkognisi ke dalam paket konversi kurikulum Merdeka Belajar Kampus Merdeka kode *MG220* pada Program Studi Informatika, Fakultas Ilmu Komputer, Universitas Pembangunan Nasional "Veteran" Jawa Timur. Paket konversi tersebut mencakup enam mata kuliah dengan bobot total 20 SKS, yaitu Analisis Kebutuhan (*IF261206*), Pemrograman Framework (*IF261208*), Pemrograman API (*IF261217*), Praktek Kerja Lapangan (*IF221129*), Merdeka Belajar Magang Industri I (*IF221381*), serta Seminar Hasil Merdeka Belajar I (*IF221379*). Bagian ini memetakan artefak rekayasa perangkat lunak, bukti implementasi kode, dan kelengkapan administratif magang terhadap capaian pembelajaran masing-masing mata kuliah.
+
 ## Rekognisi Mata Kuliah Analisis Kebutuhan (IF261206)
 
-*(Panduan Penulisan Sub-Bab IV.1)*:
-Bagian ini memetakan artefak rekayasa perangkat lunak hasil magang ke dalam Capaian Pembelajaran Mata Kuliah (CPMK) Analisis Kebutuhan:
-1. **Spesifikasi Kebutuhan Perangkat Lunak (SKPL / SRS)**:
-   - Identifikasi Kebutuhan Fungsional (FR): Mulai dari FR-DC-01 (Manajemen Fasilitas Gedung), FR-DC-02 (Alokasi Rak Spasial), FR-DC-03 (Manajemen Port & Kabel Jaringan), hingga FR-DC-05 (Registrasi & Pemindaian Visitor Pass).
-   - Identifikasi Kebutuhan Non-Fungsional (NFR): Ketersediaan (*High Availability*), keamanan multi-tenant, integritas transaksi basis data, serta kecepatan respon API (< 200 ms).
-2. **Pemodelan Aliran Data (Data Flow Diagram - DFD)**:
-   - DFD Level 0 (Diagram Konteks): Memetakan interaksi entitas luar (Teknisi NOC, Pengunjung Eksternal, Satpam, Staf Sales CRM, Sensor IoT) dengan sistem MSDC ERP.
-   - DFD Level 1: Rincian 5 proses utama modul Data Center Operations.
-   - DFD Level 2: Dekomposisi proses alokasi unit slot rak dan validasi tiket izin masuk.
-3. **Pemodelan Perilaku Pengguna**:
-   - *Usecase Diagram* dan skenario kasus penggunaan (*Usecase Scenario*).
-   - *User Flow Diagram* alur peminjaman kapasitas rak dan persetujuan bertingkat (*workflow approval*).
+Mata kuliah Analisis Kebutuhan (*IF261206*) menuntut kemampuan mahasiswa menggali permasalahan nyata di lingkungan pengguna, menerjemahkan aturan bisnis menjadi dokumen spesifikasi yang terukur, serta memodelkan aliran data dan interaksi aktor secara sistematis [@pressman2019software]. Selama tahap awal praktik kerja di Unit IT PT Jawa Pos Media Televisi, seluruh kompetensi tersebut dipraktikkan langsung ketika penulis mewawancarai staf operasional ruang peladen, menelaah kontrak lintas modul pada *base project* MSDC ERP, dan memetakan regulasi industri pusat data sebelum penulisan kode dimulai. Keterkaitan artefak magang dengan kompetensi Analisis Kebutuhan diuraikan dalam tiga aspek berikut:
+
+1. **Elisitasi dan Perumusan Spesifikasi Kebutuhan Perangkat Lunak (SKPL / SRS)**
+
+   Temuan observasi lapangan terhadap kendala pengelolaan fasilitas ruang peladen diterjemahkan ke dalam Spesifikasi Kebutuhan Perangkat Lunak (SKPL) yang memisahkan kebutuhan fungsional (*Functional Requirements* / FR) dan kebutuhan non-fungsional (*Non-Functional Requirements* / NFR). Kebutuhan fungsional dikelompokkan menjadi lima domain utama (*FR-DC-01* sampai *FR-DC-05*) yang mewakili siklus operasional dari inventarisasi gedung hingga kendali pintu masuk tamu. Di sisi lain, kebutuhan non-fungsional dirumuskan berdasarkan tolok ukur keandalan sistem transaksi *enterprise* dan kepatuhan standar internasional, yakni isolasi data *multi-tenancy*, pencegahan tabrakan alokasi basis data, rentang suhu serta kelembaban ASHRAE TC 9.9 [@ashrae2021tc99], struktur pengkabelan TIA-942 [@tia942b], dan pengendalian akses fisik ISO/IEC 27001 [@iso27001_2022]. Ringkasan spesifikasi kebutuhan tersebut disajikan pada Tabel 4.1.
+
+| Kode | Kategori | Deskripsi Kebutuhan Spesifikasi | Tolok Ukur Verifikasi |
+| :--------- | :----------- | :---------------------------------------- | :----------------------------- |
+| *FR-DC-01* | Fungsional | Pengelolaan hierarki *Site*, *Room*, *Rack* 42U, peta okupansi visual, serta penguncian alokasi slot | Kisi 42U akurat, kode unik per lokasi, *delete guard* aktif |
+| *FR-DC-02* | Fungsional | Pendataan *Device*, *Network Port* (*MAC/IP*), *Cross-Connect*, *OTB*, dan alokasi blok *CIDR* *IPAM* | Bebas duplikasi port per perangkat dan proteksi subnet terpakai |
+| *FR-DC-03* | Fungsional | Pemantauan telemetri termal *dual-bounds* ASHRAE TC 9.9, deduplikasi alarm, dan pengawasan CCTV *HLS* | Alarm *warning* dan *critical* tepat batas; URL kamera tersamar |
+| *FR-DC-04* | Fungsional | Pengelolaan *Ticket* berbasis SLA, *Work Order* kontrak, *Usage Billing* *Remote Hands*, dan *Surat DC* QR | Tanggal *milestone* kontrak sinkron dan bebas tagihan ganda |
+| *FR-DC-05* | Fungsional | Penerbitan izin kunjungan tamu *Visitor Pass*, pendaftaran publik K3/NDA, dan verifikasi QR pos satpam | Pemindaian 6 lapis aktif dan menolak pemakaian ulang QR |
+| *NFR-DC-01* | Non-Fungsional | Keamanan akses dan isolasi data *multi-tenancy* lintas organisasi pada seluruh entitas basis data | Wajib token *OAuth2*, izin RBAC, dan *header* *X-Organization-Id* |
+| *NFR-DC-02* | Non-Fungsional | Keandalan integritas transaksi konkuren saat alokasi slot rak dan verifikasi token QR berlangsung serentak | Transaksi atomik *DB::transaction* dengan *lockForUpdate()* |
+| *NFR-DC-03* | Non-Fungsional | Keamanan jaringan media CCTV terhadap ancaman *SSRF* dan kebocoran kredensial aliran video | Enkripsi AES-256 *source_url* dan validasi *host whitelist* |
+| *NFR-DC-04* | Non-Fungsional | Kepatuhan audit fisik ISO/IEC 27001 dan standar lingkungan ASHRAE TC 9.9 serta TIA-942 | Rekam permanen *dc_visitor_access_log* dan ambang suhu $18^\circ\text{C}\text{--}27^\circ\text{C}$ |
+| *NFR-DC-05* | Non-Fungsional | Kinerja dan responsivitas pemuatan data katalog berskala besar di antarmuka web peramban | *Eager loading*, paginasi peladen, dan *caching* *TanStack Query* |
+
+: Matriks Spesifikasi Kebutuhan Fungsional dan Non-Fungsional Modul Data Center Operations
+
+2. **Pemodelan Aliran Data (*Data Flow Diagram*)**
+
+   Untuk memvalidasi kejelasan batas sistem (*system boundary*) serta pertukaran data antar-unit sebelum perancangan skema basis data, penulis memodelkan aliran informasi menggunakan *Data Flow Diagram* (DFD) secara bertingkat. Pada tingkat Konteks (DFD Level 0), modul *Data Center Operations* diposisikan sebagai proses sentral yang berinteraksi dua arah dengan tiga kelompok aktor internal (Teknisi dan Operator NOC, Manajer Operasional, Petugas Pos Satpam) serta tiga entitas eksternal atau subsistem (Pengunjung Eksternal, Modul *CRM* dan *Finance* ERP, serta perangkat Sensor IoT bersama peladen media *MediaMTX* CCTV). Pemodelan ini kemudian diturunkan ke DFD Level 1 yang membagi proses ke dalam lima klaster layanan, serta DFD Level 2 yang menguraikan detail dekomposisi transaksi kritis seperti pengecekan irisan interval slot rak 42U dan verifikasi enam lapis kode QR di pos jaga. Diagram Konteks (DFD Level 0) modul *Data Center Operations* diperlihatkan pada Gambar 4.1.
+
+![Diagram Konteks (DFD Level 0) Interaksi Entitas Eksternal dengan Modul *Data Center Operations*](gambar/berkas-bab4/dfd-konteks-dc-ops.png){width=95%}
+
+3. **Pemodelan Perilaku Pengguna dan Alur Kerja (*Usecase* dan *User Flow*)**
+
+   Kebutuhan interaksi pengguna dipetakan melalui spesifikasi aktor beserta skenario kasus penggunaan (*usecase scenario*) dan alur kerja (*user flow*). Pemetaan peran membedakan kewenangan secara tegas antara *Manajer Operasional* (pemegang otorisasi persetujuan pelepasan slot rak dan tanda tangan surat operasional), *Teknisi NOC* (pelaksana pemeliharaan inventaris, pemantauan telemetri, perintah kerja, dan peninjauan kepatuhan tamu), *Petugas Pos Satpam* (operator pemindai QR pintu masuk gedung), serta *Pengunjung Eksternal* (pendaftar mandiri tanpa akun ERP). Dua alur kerja kritis dimodelkan secara rinci guna mengantisipasi celah prosedural: pertama, alur pengajuan pelepasan atau pemindahan alokasi rak yang menerapkan *Four-Eyes Principle* melalui *WorkflowEngineService* hingga disetujui manajer sebelum kapasitas dilepas; kedua, alur pendaftaran mandiri tamu yang merangkai penerbitan tautan undangan *VPINV*, perekaman persetujuan K3/NDA, daftar periksa kepatuhan operator, hingga pembangkitan kartu *e-badge* QR sekali pakai.
 
 ## Rekognisi Mata Kuliah Pemrograman Framework (IF261208)
 
-*(Panduan Penulisan Sub-Bab IV.2)*:
-Bagian ini membuktikan kompetensi rekayasa perangkat lunak berbasis kerangka kerja modern (*framework*):
-1. **Rekayasa Framework Sisi Klien (React 18 + Vite + TypeScript)**:
-   - Pola modular antarmuka: pemisahan direktori *modules/data-center-ops/* dan *shared/components/*.
-   - *State Management* dan sinkronisasi server: pemanfaatan TanStack Query (React Query) untuk manajemen *caching*, *optimistic update*, dan pencegahan *duplicate network requests*.
-   - *Component-Driven Architecture*: rancang bangun komponen kustom interaktif seperti *RackVisualPicker.tsx* (grid vertikal 42U) dan *QrScannerModal.tsx*.
-   - *Type Safety*: pendefinisian antarmuka tipe TypeScript yang ketat pada lapisan DTO (*Data Transfer Object*).
-2. **Rekayasa Framework Sisi Server (Laravel 11 Modular)**:
-   - Arsitektur berbasis paket modul (*Modules/DataCenterOps/* dan *Modules/CorePlatform/*).
-   - Pemisahan lapisan tanggung jawab (*Separation of Concerns*): Lapisan *Controller* tipis, *Domain Service Layer* berbobot, *Form Request Validator*, dan *Eloquent Model*.
-   - Penegakan *multi-tenancy* transparan via *Global Scope Eloquent Trait* *ScopesOrganization*.
-   - Penanganan eksepsi global (*Global Exception Handler*) untuk penomoran otomatis dokumen *NumberSequenceNotConfiguredException*.
+Mata kuliah Pemrograman Framework (*IF261208*) menitikberatkan penguasaan arsitektur kerangka kerja perangkat lunak modern, penerapan pola desain terstruktur (*MVC*, *Service Layer*, *Component-Driven UI*), manajemen *state* asinkron, serta pemanfaatan ekosistem pengujian bawaan *framework*. Implementasi pola *decoupled fullstack* pada sistem MSDC ERP memberikan ruang praktik langsung bagi penulis dalam merancang dan memelihara dua kerangka kerja utama secara berdampingan, yakni Laravel 11 Modular di sisi peladen dan React 18 TypeScript di sisi klien. Pemetaan komponen *framework* yang dibangun penulis dirangkum pada Tabel 4.2.
+
+| Lapisan *Framework* | Pola Arsitektur / Fitur *Framework* | Implementasi Aktual pada Modul *DataCenterOps* |
+| :------------------ | :---------------------------------- | :--------------------------------------------- |
+| *Backend* (Laravel 11) | Arsitektur Modular (*nwidart/laravel-modules*) | Isolasi penuh domain pada direktori *Modules/DataCenterOps/* dengan *DataCenterOpsServiceProvider* mandiri |
+| *Backend* (Laravel 11) | *Separation of Concerns* (*Controller* tipis dan *Service Layer*) | Pemisahan *RackController*, *NetworkController*, *MonitoringController*, dan *VisitorPassController* dari *RackService*, *IpamService*, *CctvStreamProbeService*, serta *VisitorPassService* |
+| *Backend* (Laravel 11) | *Eloquent Global Scope Trait* (*Multi-Tenancy*) | Penerapan *trait* *HasOrganizationScope* (pola *ScopesOrganization* lintas *SetOrganizationContext*) pada model entitas *dc_* |
+| *Backend* (Laravel 11) | *Custom Domain Exceptions* dan *Event Listeners* | *ReplayAttemptException*, *CctvStreamUrlRejectedException*, *HandleContractTerminatedInDcOps*, *SyncRackActionApprovalResult*, dan *UsageRecordBillable* |
+| *Backend* (Laravel 11) | *Artisan Console Scheduler* dan *Feature Testing* | *CctvHealthCheckCommand*, *CheckTicketSlaEscalationsCommand*, *CheckVisitorPassStatusCommand*, serta 9 *suite* pengujian otomatis (123 skenario) |
+| *Frontend* (React 18) | *Modular Feature Directory* dan *React Router* | Pengelompokan halaman, komponen, *hooks*, tipe, dan utilitas pada *src/modules/data-center-ops/* serta *routes.tsx* |
+| *Frontend* (React 18) | *Component-Driven UI* Kustom Interaktif | Pembangunan *RackVisualPicker.tsx* (grid vertikal 42U), *HlsPlayer.tsx* (*hls.js*), *VisitorPassScannerPage.tsx* serta *VisitorScannerView.tsx* (*BarcodeDetector* dan *jsQR*), *DevicePortFormModal.tsx*, dan *BillRemoteHandsModal.tsx* |
+| *Frontend* (React 18) | *Server State Caching* dan *TypeScript DTO* | Penggunaan *TanStack Query v5* (*useQuery*, *useMutation*, *queryKey invalidation*) bersama definisi antarmuka *types/*.ts* untuk keamanan tipe data |
+
+: Pemetaan Implementasi Komponen Framework Frontend dan Backend Modul Data Center Operations
+
+Pemenuhan kompetensi mata kuliah Pemrograman Framework terwujud melalui tiga pilar rekayasa berikut:
+
+1. **Rekayasa *Framework* Sisi Peladen dengan Laravel 11 Modular**
+
+   Pada sisi peladen, penulis menerapkan isolasi domain berbasis paket menggunakan pustaka *nwidart/laravel-modules* di dalam direktori *Modules/DataCenterOps/*. Setiap permintaan masuk melewati rantai tanggung jawab yang bersih (*Separation of Concerns*): berkas *routes/api.php* mengarahkan rute ke *Controller* tipis, validasi masukan disaring terlebih dahulu oleh lapisan *Form Request*, sementara seluruh logika bisnis dan orkestrasi transaksi dienkapsulasi di dalam lapisan *Domain Service* seperti *RackService*, *NetworkService*, *IpamService*, *MonitoringService*, *WorkOrderService*, *UsageReportingService*, dan *VisitorPassService*. Untuk menegakkan isolasi data *multi-tenancy* tanpa menulis klausa penyaring secara berulang pada setiap kueri, seluruh model Eloquent memanfaatkan *Global Scope Trait* *HasOrganizationScope* yang menerapkan pola *ScopesOrganization* berdasarkan konteks *header* *X-Organization-Id* dari *middleware* *SetOrganizationContext*. Penanganan kondisi khusus ditata lewat kelas eksepsi domain terdedikasi seperti *ReplayAttemptException*, *CctvStreamUrlRejectedException*, serta penanganan eksepsi konfigurasi *NumberSequence* agar peladen senantiasa mengembalikan respons terstruktur.
+
+2. **Rekayasa *Framework* Sisi Klien dengan React 18, Vite, dan TypeScript**
+
+   Pada sisi antarmuka pengguna, kode diorganisasikan berdasarkan pendekatan *component-driven architecture* di direktori *src/modules/data-center-ops/* yang memanfaatkan komponen dasar pakai ulang dari direktori *shared/components/*. Penulis merancang komponen antarmuka kustom berinteraksi kompleks sesuai karakteristik industri pusat data, meliputi *RackVisualPicker.tsx* untuk pemetaan elevasi vertikal 42U dengan validasi rentang slot kontigu, *HlsPlayer.tsx* yang membungkus pustaka *hls.js* berfitur *lazy-loading*, serta *VisitorPassScannerPage.tsx* dan *VisitorScannerView.tsx* yang menggabungkan pembacaan QR dua lapis (*HTML5 BarcodeDetector* dan *jsQR*) beserta masukan pemindai USB. Seluruh muatan pertukaran data antara peramban dan peladen dikunci dengan antarmuka *TypeScript* (*Data Transfer Object* / DTO pada folder *types/*) sehingga ketidakcocokan properti terdeteksi sejak tahap kompilasi. Sinkronisasi *state* asinkron dikelola menggunakan *TanStack Query v5* guna menangani *caching*, invalidasi data pasca-mutasi, pencegahan permintaan jaringan ganda, serta eliminasi pola *N+1 request* pada halaman dasbor dan *IPAM*.
+
+3. **Pemanfaatan Ekosistem Pengujian Otomatis *Framework***
+
+   Penguasaan *framework* tidak berhenti pada pembangunan fitur, melainkan mencakup jaminan stabilitas saat kode berkembang. Penulis memanfaatkan perangkat pengujian fitur bawaan Laravel (*Feature Testing* berbasis PHPUnit) pada direktori *MSDC/tests/Feature/* untuk memverifikasi perilaku *controller*, *middleware*, kebijakan validasi, dan mutasi basis data secara otomatis. Sembilan berkas pengujian otomatis dengan 123 skenario yang mencakup fasilitas fisik, *Network Port*, *IPAM*, telemetri *dual-bounds*, *Anti-SSRF* CCTV, hingga alur *Visitor Pass* berfungsi sebagai jaring pengaman regresi (*regression safety*) setiap kali dilakukan penggabungan kode lintas cabang Git.
 
 ## Rekognisi Mata Kuliah Pemrograman API (IF261217)
 
-*(Panduan Penulisan Sub-Bab IV.3)*:
-Bagian ini memvalidasi penguasaan arsitektur antarmuka pemrograman aplikasi (API):
-1. **Perancangan Arsitektur RESTful API**:
-   - Standar kontrak *endpoint* (URI, metode HTTP, format respon standar JSON *{success, message, data, errors}*, serta kode status HTTP yang tepat: 200, 201, 401, 403, 409, 422).
-   - Penyusunan tabel spesifikasi *endpoint* representatif modul Data Center Operations.
-2. **Lapisan Keamanan & Middleware Pipeline**:
-   - Autentikasi OAuth2 berbasis *Bearer Token* (Laravel Passport) yang ditegakkan melalui *guard* terdedikasi *api*.
-   - *Middleware* otorisasi berbasis peran: *ApiPermissionMiddleware* yang memeriksa izin granuler pengguna sebelum *controller* dieksekusi.
-   - *Middleware* integrasi mesin (*M2M*): *ApiKeyMiddleware* untuk sensor telemetri rak yang memvalidasi kunci kriptografi dan menyaring IP pengirim via pencocokan subnet CIDR (*CIDR IP Whitelist Guard*).
-3. **Pemodelan Data Fisik & Relasi ERD**:
-   - Penyajian diagram relasi entitas (*Physical ERD*) mencakup tabel *dc_site*, *dc_site_room*, *dc_rack*, *dc_rack_allocation*, *dc_device*, *dc_network_port*, *dc_cross_connect*, dan *dc_visitor_pass*.
-   - Penegakan integritas data: *foreign key constraints*, *composite unique indexes*, serta *scoped uniqueness* (contoh: nomor port unik per perangkat, kode ruangan unik per gedung).
+Mata kuliah Pemrograman API (*IF261217*) berfokus pada perancangan antarmuka layanan web berbasis arsitektur REST, penerapan protokol keamanan autentikasi dan otorisasi modern, validasi kontrak data, serta penjagaan konsistensi basis data pada akses konkuren [@fielding2000architectural]. Karena MSDC ERP dibangun dengan pemisahan penuh antara peladen Laravel dan klien SPA React, seluruh operasional lima klaster pusat data bergantung pada kontrak *RESTful API* yang penulis rancang dan uji. Bukti pencapaian kompetensi Pemrograman API dijabarkan pada tiga pilar berikut:
 
-## Rekognisi Mata Kuliah Praktik Kerja Lapangan (IF221129) dan Magang Industri (IF221381)
+1. **Perancangan Kontrak dan Standarisasi *RESTful API***
 
-*(Panduan Penulisan Sub-Bab IV.4)*:
-Bagian ini mendokumentasikan pemenuhan seluruh persyaratan administratif dan capaian kompetensi magang industri:
-1. **Bukti Pelaksanaan Praktik Industri**: Keterlibatan langsung dalam siklus pengembangan perangkat lunak industri di PT Jawa Pos Media Televisi.
-2. **Pengembangan Softskill & Budaya Kerja**: Pengalaman kerja tim lintas disiplin, kedisiplinan jadwal rilis, koordinasi komunikasi teknis, serta adaptasi terhadap kebutuhan klien korporat.
-3. **Kesiapan Luaran Seminar Hasil**: Penyusunan bahan presentasi, laporan teknis komprehensif, dan demonstrasi sistem live untuk diujikan pada mata kuliah Seminar Hasil Merdeka Belajar I (IF221379).
+   Seluruh *endpoint* operasional dikelompokkan di bawah prefiks berversi */api/v1/data-center-ops/* (dan */api/v1/public/* khusus jalur tamu tanpa akun) untuk menjaga kompatibilitas ke depan (*backward compatibility*). Pemilihan kata kerja HTTP mengikuti kaidah semantik REST, yakni *GET* untuk pembacaan koleksi dan rincian sumber daya terpaginasi, *POST* untuk penciptaan entitas maupun aksi transisi status domain, *PUT* untuk pembaruan data, serta *DELETE* untuk penghapusan yang terlindungi *delete guard*. Format respons JSON distandardisasi membawa atribut status, pesan, muatan *data*, dan objek *errors* apabila validasi gagal, disertai kode status HTTP yang presisi: *200 OK* dan *201 Created* untuk operasi berhasil, *401 Unauthorized* bagi permintaan tanpa token valid, *403 Forbidden* saat peran tidak memiliki izin, *422 Unprocessable Entity* ketika aturan masukan *Form Request* dilanggar, serta *409 Conflict* apabila operasi melanggar integritas relasi atau proteksi konkurensi. Kontrak *endpoint* representatif lintas lima klaster dirangkum dalam Tabel 4.3.
+
+| Klaster | Metode & URI *Endpoint* | *Middleware* / Pengaman | Fungsi Utama & Kode Status Kritis |
+| :--- | :--- | :--- | :--- |
+| Klaster 1 | *POST /v1/data-center-ops/racks/{rack}/allocate* | *auth:api*, *permission:rack.manage* | Alokasi rentang slot 42U terkunci *lockForUpdate()* (*201*, *409* jika tumpang tindih, *422*) |
+| Klaster 1 | *GET /v1/data-center-ops/racks/{rack}/occupancy* | *auth:api*, *permission:rack.view* | Memuat peta keterisian 42 slot U beserta perangkat terpasang (*200 OK*) |
+| Klaster 2 | *POST /v1/data-center-ops/devices/{device}/ports* | *auth:api*, *permission:network.manage* | Mendaftarkan port jaringan dengan validasi *MAC/IP* dan keunikan per perangkat (*201*, *422*) |
+| Klaster 2 | *DELETE /v1/data-center-ops/ip-subnets/{subnet}* | *auth:api*, *permission:ipam.manage* | Menghapus subnet *IPAM* dengan *allocation guard* (*200*, *409 Conflict* jika IP masih aktif) |
+| Klaster 3 | *POST /v1/data-center-ops/iot/metric-readings* | *api-key* (*X-API-Key* & *CIDR*) | Menerima sampel telemetri sensor IoT dan memicu evaluasi *dual-bounds* ASHRAE (*201*, *401*) |
+| Klaster 3 | *POST /v1/data-center-ops/cctv-cameras/test* | *auth:api*, *cctv.manage*, *throttle:10,1* | Menguji aliran *RTMP/HLS* via *ffprobe* dengan proteksi *Anti-SSRF* (*200*, *422*) |
+| Klaster 4 | *POST /v1/data-center-ops/work-order-items/{id}/toggle* | *auth:api*, *permission:work-order.manage* | Menandai penyelesaian item instalasi dan menyinkronkan tanggal *milestone* kontrak (*200*) |
+| Klaster 4 | *POST /v1/data-center-ops/usage-records/{id}/bill-remote-hands* | *auth:api*, *permission:usage-record.manage* | Menerbitkan draf faktur piutang *Remote Hands* ke *Finance* (*200*, *409* anti-tagih ganda) |
+| Klaster 5 | *POST /v1/public/visitor-invitation/{token}/register* | Publik (*SHA-256 token*, *whitelist*) | Pendaftaran mandiri tamu, rekam K3/NDA, dan validasi jadwal WIB (*200*, *422*) |
+| Klaster 5 | *POST /v1/data-center-ops/visitor-passes/scan-verify* | *auth:api*, *permission:visitor-pass.manage* | Verifikasi 6 lapis kode QR pos satpam dan proteksi *anti-replay* (*200*, *409 Conflict*) |
+
+: Spesifikasi Kontrak Endpoint Representatif RESTful API Modul Data Center Operations
+
+2. **Lapisan Keamanan API dan *Middleware Pipeline***
+
+   Setiap permintaan yang menyentuh *endpoint* modul melewati rangkaian *middleware* berlapis sebelum mencapai logika bisnis. Pada jalur pengguna internal, *Laravel Passport* menegakkan autentikasi *OAuth2 Bearer Token* melalui *guard* *api* diikuti *core.active*, kemudian *ApiPermissionMiddleware* (berbasis *Spatie Permission*) memverifikasi hak akses granuler per aksi seperti *rack.manage*, *ipam.manage*, atau *visitor-pass.manage*. Pada jalur integrasi perangkat keras sensor suhu dan daya (*Machine-to-Machine* / M2M), rute *iot/metric-readings* dipisahkan dari sesi login pengguna dan dilindungi oleh *ApiKeyMiddleware* yang memeriksa validitas kunci kriptografi pada *header* *X-API-Key* sekaligus memvalidasi alamat IP pengirim terhadap daftar putih blok subnet *CIDR*. Di samping lapisan *middleware*, keamanan diperkuat pada lapisan layanan melalui pembatasan laju permintaan (*rate limiting* *throttle*) pada uji kamera CCTV, penyaringan alamat tujuan *Anti-SSRF* di *CctvStreamProbeService*, enkripsi AES-256 pada *source_url*, serta penerapan *response whitelisting* lewat *toRegistrationSummary()* pada rute publik *PublicVisitorPassController* agar atribut internal tidak pernah bocor.
+
+3. **Pemodelan Integritas Basis Data Relasional dan Pengendalian Konkurensi API**
+
+   Keandalan *RESTful API* ditopang oleh perancangan skema fisik basis data relasional MySQL 8 yang menegakkan integritas referensial secara ketat melalui *foreign key constraints* (*restrictOnDelete*, *cascadeOnDelete*, dan *nullOnDelete* sesuai semantik bisnis) serta indeks unik majemuk (*composite unique index*). Aturan *scoped uniqueness* diterapkan antara lain pada pasangan *site_id* dan *room_code* di tabel *dc_site_room*, pasangan *site_room_id* dan *rack_code* di tabel *dc_rack*, pasangan *device_id* dan *port_name* di tabel *dc_network_port*, serta pasangan *organization_id* dan *tag_number* di tabel *dc_otb*. Untuk mencegah ketidakkonsistenan data pada permintaan API paralel, operasi kritis seperti alokasi slot rak 42U pada *RackService::allocate* dan pemindaian tiket QR pada *VisitorPassService::scanAndVerify* dibungkus transaksi atomik *DB::transaction* disertai *pessimistic locking* (*lockForUpdate()*). Pemetaan relasi antartabel inti pada basis data modul *Data Center Operations* disajikan dalam *Physical Entity Relationship Diagram* (ERD) pada Gambar 4.2.
+
+![Diagram Relasi Entitas Fisik (*Physical ERD*) Tabel Inti Modul *Data Center Operations*](gambar/berkas-bab4/physical-erd-dc-ops.png){width=62%}
+
+## Rekognisi Mata Kuliah PKL/KKN/Praktik Laboratorium
+
+Sub-bab ini mendokumentasikan pemenuhan landasan hukum, bukti administratif penerimaan mitra, serta pencapaian kompetensi praktik industri untuk tiga mata kuliah wajib paket *MG220*, yaitu Praktek Kerja Lapangan (*IF221129*), Merdeka Belajar Magang Industri I (*IF221381*), dan Seminar Hasil Merdeka Belajar I (*IF221379*). Ketiga mata kuliah tersebut menuntut keterlibatan langsung mahasiswa pada institusi mitra resmi yang memiliki payung kerja sama formal, pemenuhan jam kerja efektif setara satu semester penuh, serta penyajian luaran karya rekayasa yang siap dipertanggungjawabkan secara akademik.
+
+1. **Surat Penerimaan Magang (*Letter of Acceptance* / LoA)**
+
+   Legalitas penerimaan mahasiswa untuk melaksanakan program magang di PT Jawa Pos Media Televisi dibuktikan melalui surat resmi *Balasan Permohonan Magang* (*Letter of Acceptance* / LoA) yang diterbitkan di Surabaya pada tanggal 20 Agustus 2026 oleh PT Jawapos Media Televisi (JTV). Surat tersebut ditujukan langsung kepada Koordinator Program Studi Informatika UPN "Veteran" Jawa Timur, Ibu Dr. Intan Yuniar Purbasari, S.Kom., M.Sc, dan menyatakan penerimaan resmi bagi mahasiswa Program Studi Informatika, yaitu Muhammad Akmal Firmansyah (NPM 24081010291) bersama Najaf Ali (NPM 24081010255), untuk melaksanakan magang pada bagian IT PT Jawapos Media Televisi dengan masa penugasan tercatat mulai tanggal 03 Agustus 2026 hingga 23 Desember 2026 (dengan aktivitas efektif di lapangan berlangsung mulai 10 Agustus 2026). Surat penerimaan ini disahkan langsung oleh Ibu Iffah Maryam selaku pejabat Umum & HRD PT Jawapos Media Televisi. Salinan resmi *Letter of Acceptance* tersebut ditampilkan pada Gambar 4.3.
+
+![Surat Penerimaan Magang (*Letter of Acceptance*) dari PT Jawa Pos Media Televisi](gambar/berkas-bab4/LOA.png){width=62%}
+
+2. **Perjanjian Kerja Sama (*Memorandum of Agreement* / MoA)**
+
+   Pelaksanaan program Merdeka Belajar Magang Industri di PT Jawa Pos Media Televisi dinaungi oleh payung hukum kelembagaan berupa dokumen *Perjanjian Kerja Sama* (*Memorandum of Agreement* / MoA) mengenai Kerja Sama di Bidang Pendidikan, Penelitian, dan Pengabdian kepada Masyarakat. Dokumen perjanjian tersebut tercatat dengan nomor ganda, yaitu nomor *015/UN63.7/PKS/2024* dari pihak fakultas dan nomor *006/PKS/JTV/II/2024* dari pihak perusahaan, yang ditandatangani secara resmi pada hari Senin, 26 Februari 2024. Perjanjian disepakati oleh Fakultas Ilmu Komputer Universitas Pembangunan Nasional "Veteran" Jawa Timur selaku Pihak Pertama yang diwakili oleh Dekan Prof. Dr. Ir. Novirina Hendrasarie, M.T., bersama PT Jawapos Media Televisi selaku Pihak Kedua yang diwakili oleh Direktur Ibu Rina Prabawati, dengan ruang lingkup mencakup Program Studi Informatika, Sistem Informasi, Sains Data, Bisnis Digital, serta Magister Teknologi Informasi. Halaman pengesahan utama *Memorandum of Agreement* tersebut ditunjukkan pada Gambar 4.4.
+
+![Perjanjian Kerja Sama (*Memorandum of Agreement*) antara Fakultas Ilmu Komputer UPN "Veteran" Jawa Timur dan PT Jawa Pos Media Televisi](gambar/berkas-bab4/MoA.png){width=62%}
+
+3. **Pemenuhan Capaian Praktik Industri dan Kesiapan Luaran Seminar Hasil**
+
+   Selama 20 minggu pelaksanaan magang dengan alokasi 40 jam kerja per minggu (akumulasi lebih dari 800 jam kerja efektif dalam skema kerja hibrida WFH empat hari dan WFO setiap hari Kamis di kantor JTV Surabaya), penulis memenuhi seluruh capaian pembelajaran Praktek Kerja Lapangan (*IF221129*) dan Merdeka Belajar Magang Industri I (*IF221381*). Di luar keterampilan rekayasa teknis, lingkungan kerja korporat membentuk kecakapan nonteknis (*soft skills*) yang nyata: disiplin pengelolaan cabang Git dan *Pull Request* granular, koordinasi sinkronisasi kontrak data bersama tim lintas modul ERP (*CorePlatform*, *CRM & Sales*, *Finance*, serta *HR*), ketepatan estimasi jadwal *sprint*, hingga penyampaian demonstrasi sistem mingguan di hadapan Direktur Teknik sekaligus Pembimbing Lapangan, Bapak M. Triman Prasodjo, S.T.
+
+   Untuk memenuhi persyaratan evaluasi akademik pada mata kuliah Seminar Hasil Merdeka Belajar I (*IF221379*), penulis telah merampungkan seluruh artefak luaran proyek secara lengkap dan terverifikasi. Luaran tersebut meliputi naskah Laporan Akhir PLK yang membedah pelaksanaan proyek hingga rekognisi mata kuliah, *Logbook* kronologis kegiatan harian yang sesuai dengan riwayat *commit* repositori, aplikasi modul *Data Center Operations* yang telah tervalidasi penuh pada *staging server* JTV, publikasi terbuka repositori kode sumber modul (*MSDCBackend-module-dc-ops* dan *MSDCFrontend-module-dc-ops*) pada GitHub, serta penyusunan Buku Panduan (*Manual Book*) sebagai kelengkapan pendaftaran Hak Kekayaan Intelektual (HKI) Program Komputer.
