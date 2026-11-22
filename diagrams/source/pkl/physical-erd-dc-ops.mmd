@@ -1,0 +1,118 @@
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#EFF6FF', 'primaryTextColor': '#0F172A', 'primaryBorderColor': '#002655', 'lineColor': '#334155', 'fontFamily': 'Segoe UI, Arial, sans-serif', 'fontSize': '12px' }}}%%
+erDiagram
+    dc_site {
+        bigint id PK
+        varchar site_code UK
+        varchar site_name
+        decimal total_power_kw
+        enum status
+    }
+
+    dc_site_room {
+        bigint id PK
+        bigint site_id FK
+        varchar room_code UK
+        varchar room_name
+        enum room_type
+    }
+
+    dc_rack {
+        bigint id PK
+        bigint site_room_id FK
+        varchar rack_code UK
+        int total_u
+        decimal power_capacity_watt
+    }
+
+    dc_rack_allocation {
+        bigint id PK
+        bigint rack_id FK
+        bigint contract_id FK
+        int start_u
+        int end_u
+        enum status
+    }
+
+    dc_device {
+        bigint id PK
+        bigint site_id FK
+        bigint rack_id FK
+        varchar device_code UK
+        int rack_position_u
+        bigint fixed_asset_id FK
+    }
+
+    dc_network_port {
+        bigint id PK
+        bigint device_id FK
+        varchar port_name UK
+        varchar mac_address
+        varchar ip_address
+        bigint connected_to_port_id FK
+    }
+
+    dc_cross_connect {
+        bigint id PK
+        bigint port_a_id FK
+        bigint port_b_id FK
+        bigint contract_id FK
+        bigint destination_otb_port_id FK
+        enum status
+    }
+
+    dc_otb {
+        bigint id PK
+        bigint organization_id FK
+        varchar tag_number UK
+        int port_count
+        enum status
+    }
+
+    dc_ip_subnet {
+        bigint id PK
+        bigint site_id FK
+        varchar cidr UK
+        enum ip_version
+        enum subnet_type
+    }
+
+    dc_ticket {
+        bigint id PK
+        bigint site_id FK
+        bigint device_id FK
+        bigint sla_id FK
+        varchar ticket_number UK
+        enum status
+    }
+
+    dc_work_order {
+        bigint id PK
+        bigint contract_id FK
+        bigint sales_order_id FK
+        enum status
+        timestamp completed_at
+    }
+
+    dc_visitor_pass {
+        bigint id PK
+        bigint site_id FK
+        bigint site_room_id FK
+        bigint contract_id FK
+        varchar pass_number UK
+        varchar token_hash UK
+    }
+
+    dc_site ||--o{ dc_site_room : "memiliki"
+    dc_site_room ||--o{ dc_rack : "memuat"
+    dc_rack ||--o{ dc_rack_allocation : "dialokasikan"
+    dc_rack ||--o{ dc_device : "menampung"
+    dc_site ||--o{ dc_device : "lokasi"
+    dc_device ||--o{ dc_network_port : "memiliki"
+    dc_network_port ||--o{ dc_cross_connect : "ujung_port"
+    dc_otb ||--o{ dc_cross_connect : "terminasi_otb"
+    dc_site ||--o{ dc_ip_subnet : "cakupan_ip"
+    dc_site ||--o{ dc_ticket : "insiden"
+    dc_device ||--o{ dc_ticket : "perangkat_terdampak"
+    dc_site ||--o{ dc_visitor_pass : "lokasi_kunjungan"
+    dc_site_room ||--o{ dc_visitor_pass : "ruang_tujuan"
+    dc_work_order }o--o{ dc_rack_allocation : "kontrak_crm"

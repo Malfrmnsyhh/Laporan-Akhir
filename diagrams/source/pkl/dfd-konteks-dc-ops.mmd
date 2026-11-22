@@ -1,0 +1,43 @@
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#F8FAFC', 'primaryTextColor': '#0F172A', 'primaryBorderColor': '#002655', 'lineColor': '#334155', 'textColor': '#0F172A', 'edgeLabelBackground': '#FFFFFF', 'fontFamily': 'Segoe UI, Arial, sans-serif', 'fontSize': '13px' }}}%%
+flowchart LR
+    subgraph INT["Aktor Operasional Internal"]
+        direction TB
+        NOC["Teknisi & Operator NOC"]
+        MGR["Manajer Operasional"]
+        SEC["Petugas Pos Satpam"]
+    end
+
+    SYS(("0.0\nModul Data Center\nOperations\n(MSDC ERP)"))
+
+    subgraph EXT["Entitas Eksternal & Subsistem"]
+        direction TB
+        VIS["Pengunjung Eksternal"]
+        ERP["Modul CRM & Finance ERP"]
+        IOT["Sensor IoT & MediaMTX CCTV"]
+    end
+
+    NOC -->|"Data Site, Room, Rack, Device,\nPort, Kabel, Tiket & Work Order"| SYS
+    SYS -->|"Peta Rak 42U, Alarm ASHRAE,\nLive Feed HLS & Status Tiket"| NOC
+
+    MGR -->|"Otorisasi Pelepasan Rak,\nPersetujuan Surat DC & Audit"| SYS
+    SYS -->|"Permintaan Workflow Approval,\nLaporan Utilisasi & Log Akses"| MGR
+
+    SEC -->|"Token QR E-Badge Tamu\n& Konfirmasi Check-In/Out"| SYS
+    SYS -->|"Status Verifikasi 6 Lapis,\nAnti-Replay & Live Headcount"| SEC
+
+    SYS -->|"Tautan Undangan VPINV\n& Kartu E-Badge QR Digital"| VIS
+    VIS -->|"Biodata, Jadwal Kunjungan\n& Persetujuan K3/NDA Publik"| SYS
+
+    SYS -->|"Sinkronisasi Milestone Kontrak\n& Draf Tagihan Remote Hands"| ERP
+    ERP -->|"Kontrak Aktif, Sales Order\n& SLA Pelanggan (CRM)"| SYS
+
+    SYS -->|"Validasi CIDR Whitelist,\nProbe Anti-SSRF & Health Check"| IOT
+    IOT -->|"Sampel Suhu/Kelembaban (API Key)\n& Aliran Video RTMP/HLS"| SYS
+
+    style INT fill:#F8FAFC,stroke:#CBD5E1,stroke-width:1.5px,color:#002655
+    style EXT fill:#F8FAFC,stroke:#CBD5E1,stroke-width:1.5px,color:#002655
+    classDef entity fill:#FFFFFF,stroke:#002655,stroke-width:2px,color:#0F172A,font-weight:bold
+    classDef process fill:#002655,stroke:#FF6C00,stroke-width:3px,color:#FFFFFF,font-weight:bold
+
+    class NOC,MGR,SEC,VIS,ERP,IOT entity
+    class SYS process
