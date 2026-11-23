@@ -1,0 +1,26 @@
+flowchart TB
+    A["Jalur A: Undangan Mandiri (Terencana)\n1. Operator terbitkan VPINV_ (160-bit)\n2. Tamu isi biodata & K3/NDA + IP\n3. Compliance Vetting -> approve()"]
+    B["Jalur B: Penerbitan Darurat (Walk-In)\n1. Petugas pos jaga input identitas\n2. Cek kontrak CRM & rak pelanggan\n3. Status langsung scheduled"]
+
+    C1["VisitorPassService (Laravel 12)\nVPQR_ (160-bit) -> SHA-256 token_hash\nAES-256 encrypted_token + 256-bit URL\nSurel dikirim via DB::afterCommit()"]
+    C2[("Basis Data Relasional\ndc_visitor_pass (9 status)\ndc_visitor_access_log (8 kode)")]
+    C3["Scheduler 10 Menit\ndc-ops:check-visitor-pass-status\nDeteksi expired & overstayed"]
+
+    D["E-Badge Publik (No-Auth, Fail-Closed)\nGET /v1/public/visitor-pass/{token}\nWhitelist 8 field, sensor PII, no-store\nLocal QR: Server SVG & Browser PNG"]
+    E["Scanner Pos Jaga (React 18)\nWebcam jsQR, Foto BarcodeDetector, USB HID\nPOST /scan-verify (lockForUpdate 6 Lapis)\nLive Headcount & Check-Out Idempotent"]
+
+    A -->|"POST /{id}/approve"| C1
+    B -->|"POST /visitor-passes"| C1
+    C1 --> C2
+    C3 <--> C2
+    C2 -->|"Dekripsi Fail-Closed"| D
+    D -.->|"Pindai QR"| E
+    E <-->|"Row Lock + Audit"| C2
+
+    style A fill:#EFF6FF,stroke:#1D4ED8,stroke-width:1.5px,color:#0F172A
+    style B fill:#FFFBEB,stroke:#D97706,stroke-width:1.5px,color:#0F172A
+    style C1 fill:#EEF2FF,stroke:#3730A3,stroke-width:1.5px,color:#0F172A
+    style C2 fill:#DBEAFE,stroke:#1D4ED8,stroke-width:1.8px,color:#0F172A
+    style C3 fill:#F1F5F9,stroke:#475569,stroke-width:1.4px,color:#0F172A
+    style D fill:#F0FDF4,stroke:#15803D,stroke-width:1.5px,color:#0F172A
+    style E fill:#FDF2F8,stroke:#BE185D,stroke-width:1.5px,color:#0F172A

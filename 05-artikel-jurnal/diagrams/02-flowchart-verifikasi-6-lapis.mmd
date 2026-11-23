@@ -1,0 +1,29 @@
+flowchart TB
+    S(["POST /v1/data-center-ops/visitor-passes/scan-verify\nInput: rawToken, scan_method, site_id, officerId -> Hitung SHA-256(trim(rawToken))"])
+    TX["DB::transaction() + Pessimistic Row Lock\nVisitorPass::where('token_hash', hash)->lockForUpdate()->first()\nPermintaan simultan menunggu hingga transaksi pertama commit/rollback"]
+
+    V1["Lapis 1-2: Token & Lokasi\nL1: Baris token ada di DB? | L2: Pos cocok (!isWrongScanSite)?"]
+    V2["Lapis 3-4: Kontrak & TTL\nL3: Kontrak CRM 'active'? | L4: valid_from <= now <= valid_until?"]
+    V3["Lapis 5-6: Anti-Replay & Status\nL5: qr_token_consumed_at == null? | L6: Status tepat 'scheduled'?"]
+
+    D["HTTP 422 Denied (DomainException)\nRollback + Log permanen di luar rollback:\ninvalid / wrong_site* / inactive / expired\n*Salah gedung tidak menghanguskan token"]
+    R["HTTP 409 Conflict (ReplayAttemptException)\nRollback + Log permanen di luar rollback:\ndc_visitor_access_log (denied_already_used)\nreplay_detected: true + Alarm Pos Jaga"]
+    G["HTTP 200 OK (Access Granted)\nUpdate atomik: active_in_facility,\nqr_token_consumed_at=now(), actual_check_in_at\nLog: granted + Commit + allocated_racks"]
+
+    S --> TX --> V1
+    V1 -->|"Lolos L1-L2"| V2
+    V2 -->|"Lolos L3-L4"| V3
+    V1 -.->|"Gagal L1/L2"| D
+    V2 -.->|"Gagal L3/L4"| D
+    V3 -.->|"Gagal L6"| D
+    V3 -->|"Gagal L5 (Replay)"| R
+    V3 -->|"Lolos L1-L6"| G
+
+    style S fill:#F8FAFC,stroke:#475569,stroke-width:1.4px,color:#0F172A
+    style TX fill:#DBEAFE,stroke:#1D4ED8,stroke-width:1.8px,color:#1E3A8A
+    style V1 fill:#FFFFFF,stroke:#2563EB,stroke-width:1.4px,color:#0F172A
+    style V2 fill:#FFFFFF,stroke:#2563EB,stroke-width:1.4px,color:#0F172A
+    style V3 fill:#FEF2F2,stroke:#DC2626,stroke-width:1.6px,color:#7F1D1D
+    style D fill:#FEF3C7,stroke:#B45309,stroke-width:1.8px,color:#78350F
+    style R fill:#FEE2E2,stroke:#B91C1C,stroke-width:2px,color:#7F1D1D
+    style G fill:#DCFCE7,stroke:#15803D,stroke-width:2px,color:#064E3B
