@@ -31,7 +31,7 @@
 | :--- | :--- |
 | Nama | Muhammad Akmal Firmansyah |
 | NPM | 24081010291 |
-| Tempat PKL | PT. Jawa Pos Media Televisi (JTV) |
+| Tempat PKL | PT Jawa Pos Media Televisi (JTV) |
 | Deskripsi Tugas | [DIISI: Rincian tugas perancangan *UI/UX Design System* global *ERP*, pengembangan lima klaster modul *Data Center Operations*, serta sinkronisasi kontrak API lintas modul.] |
 
 : Matriks Peran dan Pembagian Tugas PKL (Kerangka)
