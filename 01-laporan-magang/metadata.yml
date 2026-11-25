@@ -12,22 +12,15 @@ title: "Rancang Bangun Ekosistem Enterprise ERP Data Center (MSDC) Berbasis Arsi
 doc_kind: "PRAKTIK KERJA LAPANGAN"
 program: "Praktek Kerja Lapangan Konversi"
 pks_number: "No. PKS: 015/UN63.7/PKS/2024"
-case_study: "PT. Jawa Pos Media Televisi (JTV)"
-partner_name: "PT. JAWA POS MEDIA TELEVISI (JTV)"
+case_study: "PT Jawa Pos Media Televisi (JTV)"
+partner_name: "PT JAWA POS MEDIA TELEVISI (JTV)"
 partner_address: "Graha Pena, Jl. Ahmad Yani No. 88, Ketintang, Gayungan, Surabaya, Jawa Timur"
 
-# Daftar Penulis (mendukung 1 penulis / Individu maupun multi-penulis / Kelompok)
+# Daftar Penulis (Mode Individu: 1 orang)
 author:
   - name: "Muhammad Akmal Firmansyah"
     nim: "24081010291"
     module: "Modul Data Center Operations (5 Klaster) & Standardisasi UI/UX Figma Global ERP"
-  # --- [OPSIONAL: Aktifkan jika Mode Laporan = Kelompok] ---
-  # - name: "[NAMA ANGGOTA 2]"
-  #   nim: "[NPM ANGGOTA 2]"
-  #   module: "[Modul yang Dikerjakan Anggota 2]"
-  # - name: "[NAMA ANGGOTA 3]"
-  #   nim: "[NPM ANGGOTA 3]"
-  #   module: "[Modul yang Dikerjakan Anggota 3]"
 
 lecturer: "Ardhon Rakhmadi, S.Tr.T., M.Kom."
 lecturer_label: "Dosen Pembimbing:"
@@ -69,32 +62,14 @@ approval:
     - role: "Koordinator Program Studi"
       unit: "Informatika"
       name: "Dr. Intan Yuniar Purbasari, S.Kom., M.Sc."
-      nip: "[PERLU KONFIRMASI NIP]"
+      nip: "198006022025212029"
 
 # Surat Pernyataan Keaslian Kegiatan PKL (bermaterai Rp10.000)
 statement:
   enabled: true
   stamp_label: "Materai Rp10.000"
 
-# Abstrak ID (dengan tabel header mini: Judul, Studi Kasus, Penulis, Pembimbing) & Abstract EN
-# [DRAF KERANGKA — Lengkapi narasi final setelah penulisan Bab I–V selesai]
-abstract_id: |
-  [DRAF ABSTRAK BAHASA INDONESIA: Diisi setelah penyusunan Bab I hingga Bab V selesai. Merangkum latar belakang kebutuhan sistem ERP pusat data di PT Jawa Pos Media Televisi (JTV), cakupan ekosistem MSDC Enterprise ERP (UI/UX Figma, modul Data Center Operations 5 klaster, serta integrasi lintas modul tim ERP), metode pengembangan arsitektur modular Laravel dan React, serta hasil pengujian dan validasi.]
-keywords_id:
-  - "Enterprise Resource Planning"
-  - "Data Center Operations"
-  - "Arsitektur Modular"
-  - "Laravel"
-  - "React"
-  - "UI/UX Design System"
-
-abstract_en: |
-  [DRAFT ENGLISH ABSTRACT: To be finalized after Chapters I through V are completed. Summarizes the background of data center ERP digitalization at PT Jawa Pos Media Televisi (JTV), the scope of the MSDC Enterprise ERP ecosystem (Figma UI/UX Design System, 5-cluster Data Center Operations module, and cross-team ERP integration points), the modular Laravel and React architecture methodology, and verification results.]
-keywords_en:
-  - "Enterprise Resource Planning"
-  - "Data Center Operations"
-  - "Modular Architecture"
-  - "Laravel"
-  - "React"
-  - "UI/UX Design System"
+# Catatan: Abstrak Bahasa Indonesia (beserta tabel header mini) dan Abstract Bahasa Inggris
+# dikelola langsung pada 01-laporan-magang/cover.md agar pemformatan italic istilah asing
+# terender identik di PDF (Typst) maupun DOCX (Pandoc) dan dapat diaudit langsung oleh periksa.py.
 ...
