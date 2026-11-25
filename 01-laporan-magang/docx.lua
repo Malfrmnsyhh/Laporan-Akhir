@@ -357,9 +357,9 @@ function Pandoc(doc)
   local doc_kind = meta_str(meta, "doc_kind")
   if doc_kind == "" then doc_kind = "PRAKTIK KERJA LAPANGAN" end
   local case_study = meta_str(meta, "case_study")
-  if case_study == "" then case_study = "PT. Jawa Pos Media Televisi (JTV)" end
+  if case_study == "" then case_study = "PT Jawa Pos Media Televisi (JTV)" end
   local partner_name = meta_str(meta, "partner_name")
-  if partner_name == "" then partner_name = "PT. JAWA POS MEDIA TELEVISI (JTV)" end
+  if partner_name == "" then partner_name = "PT JAWA POS MEDIA TELEVISI (JTV)" end
   local partner_address = meta_str(meta, "partner_address")
   if partner_address == "" then partner_address = "Graha Pena, Jl. Ahmad Yani No. 88, Ketintang, Gayungan, Surabaya, Jawa Timur" end
   local lecturer = meta_str(meta, "lecturer")
