@@ -74,7 +74,21 @@ Pengelolaan operasional pusat data kolokasi di PT Jawa Pos Media Televisi (JTV) 
 
 # KATA PENGANTAR {-}
 
-[DRAF KATA PENGANTAR: Diisi saat penulisan akhir dengan ungkapan syukur dan ucapan terima kasih resmi kepada Rektor UPN "Veteran" Jawa Timur, Dekan Fakultas Ilmu Komputer, Koordinator Program Studi Informatika, Dosen Pembimbing, Pembimbing Lapangan PT Jawa Pos Media Televisi (JTV), staf Unit Teknologi Informasi JTV, serta rekan tim lintas modul MSDC Enterprise ERP.]
+Puji syukur penulis panjatkan ke hadirat Allah SWT atas segala rahmat, karunia, dan hidayah-Nya sehingga penulis dapat menyelesaikan kegiatan Praktik Kerja Lapangan (PKL) serta penyusunan laporan ini dengan baik. Laporan PKL ini disusun sebagai bentuk pertanggungjawaban atas pelaksanaan kegiatan magang mandiri di PT Jawa Pos Media Televisi (JTV) dalam rangka memenuhi persyaratan program Merdeka Belajar Kampus Merdeka (MBKM).
+
+Pelaksanaan PKL dan penyusunan laporan ini tidak lepas dari bantuan, bimbingan, dan dukungan berbagai pihak. Oleh karena itu, penulis mengucapkan terima kasih yang sebesar-besarnya kepada:
+
+1. Ibu Prof. Dr. Ir. Rossyda Priyadarshini, M.P. selaku Rektor Universitas Pembangunan Nasional "Veteran" Jawa Timur yang telah memberikan kesempatan kepada mahasiswa untuk mengikuti program MBKM.
+2. Ibu Prof. Dr. Ir. Novirina Hendrasarie, M.T. selaku Dekan Fakultas Ilmu Komputer Universitas Pembangunan Nasional "Veteran" Jawa Timur yang telah mendukung terlaksananya kegiatan PKL ini.
+3. Ibu Dr. Intan Yuniar Purbasari, S.Kom., M.Sc. selaku Koordinator Program Studi Informatika Fakultas Ilmu Komputer yang telah memfasilitasi kegiatan PKL dan memberikan arahan akademis.
+4. Bapak Ardhon Rakhmadi, S.Tr.T., M.Kom. selaku Dosen Pembimbing yang telah memberikan bimbingan, arahan, saran, dan motivasi selama pelaksanaan PKL hingga penyelesaian laporan ini.
+5. Bapak M. Triman Prasodjo, S.T. selaku Pembimbing Lapangan sekaligus Direktur Teknik PT Jawa Pos Media Televisi (JTV) yang telah memberikan izin, arahan, dan kesempatan kepada penulis untuk melaksanakan PKL di Unit Teknologi Informasi JTV.
+6. Seluruh tim Unit Teknologi Informasi PT Jawa Pos Media Televisi (JTV) yang telah menerima, membimbing, dan bekerja sama dengan baik selama pelaksanaan PKL.
+7. Rekan-rekan tim magang JTV, khususnya tim pengembang lintas modul ekosistem *MSDC Enterprise ERP*, atas kerja sama, kolaborasi, dan dukungannya selama pengembangan proyek.
+8. Kedua orang tua dan keluarga tercinta yang senantiasa memberikan doa, dukungan moral, dan dukungan material sehingga penulis dapat menyelesaikan kegiatan PKL dengan baik.
+9. Teman-teman Program Studi Informatika angkatan 2024 yang telah memberikan semangat dan dukungan selama pelaksanaan PKL.
+
+Penulis menyadari bahwa laporan ini masih jauh dari kesempurnaan. Oleh karena itu, penulis mengharapkan kritik dan saran yang membangun untuk perbaikan pada masa mendatang. Semoga laporan ini bermanfaat bagi pembaca, khususnya mahasiswa yang akan melaksanakan kegiatan PKL, serta menjadi dokumentasi yang berguna bagi pihak-pihak yang berkepentingan.
 
 ```{=typst}
 #v(0.8cm)
