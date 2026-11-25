@@ -1,93 +1,53 @@
 # HASIL DAN PEMBAHASAN
 
-## Struktur Berkas dan Implementasi Sistem
+## Gambaran Umum Proyek
 
-Implementasi pipeline **Laporan Generator** menghasilkan struktur direktori yang modular dan terorganisasi secara sistematis:
+[KERANGKA BAB 4.1: Paparkan arsitektur makro ekosistem *MSDC Enterprise ERP* yang dibangun secara kolaboratif, pembagian tanggung jawab antar-tim modul, serta posisi modul *Data Center Operations* sebagai tulang punggung operasional ruang peladen.]
 
-```
-laporan-generator/
-|-- laporan                  # CLI Helper terpadu (build, init, preset, check, test)
-|-- build.sh                 # Skrip build utama PDF (Typst engine)
-|-- Makefile                 # Target otomasi (build, docx, html, watch, view, clean)
-|-- template.typ             # Template visual Typst (font, margin, heading)
-|-- docx.lua                 # Filter Lua penomoran bab & sampul DOCX
-|-- reference.docx           # Template gaya Microsoft Word (A4, TNR 12pt)
-|-- metadata.yml             # Konfigurasi judul, penulis, dosen, institusi, preset
-|-- references.bib           # Basis data daftar pustaka (format BibTeX)
-|-- apa.csl                  # Aturan sitasi standar APA Edisi ke-7
-|-- cover.md                 # Kata pengantar & outline front matter
-|-- chapters/                # Konten laporan modular (BAB I s/d BAB V)
-|-- presets/                 # Konfigurasi format kampus (UI, ITB, UGM, ITS, Standard)
-|-- scripts/                 # Utilitas Python (scan-preset, validate, docx-pagenum)
-|-- flake.nix / flake.lock   # Lingkungan hermetik Nix Flake
-|-- Dockerfile               # Kontainer build multi-arsitektur (amd64 / arm64)
-|-- docker-compose.yml       # Orkestrasi kontainer Docker dengan pemetaan user
-|-- prompt.md                # Panduan instruksi agen AI (OpenCode, Claude, Antigravity)
-\-- test.sh                  # Suite pengujian otomatis (78 assertions)
-```
+## Analisis Masalah Sistem Eksisting
 
-## Evaluasi Hasil Keluaran Dokumen PDF (Typst Engine)
+[KERANGKA BAB 4.2: Analisis permasalahan operasional sebelum implementasi sistem baru mencakup risiko konflik alokasi unit rak, ketiadaan riwayat pengkabelan terpusat, celah keamanan izin akses fisik statis, serta ketidakselarasan antarmuka antar-modul.]
 
-Kompilasi dokumen PDF menggunakan Typst menghasilkan dokumen akademik dengan kualitas tipografi tingkat tinggi. Beberapa pencapaian visual utama meliputi:
+## Perancangan UI/UX dan Design System Global ERP
 
-1. **Struktur Penomoran Bab Dua Baris** --- Sesuai dengan pedoman penulisan karya ilmiah di Indonesia, judul bab level 1 dirender dalam dua baris simetris: baris pertama berisi prefix angka Romawi tebal (contoh: `BAB I`), dan baris kedua berisi nama judul bab dalam huruf kapital tebal 14pt (contoh: `PENDAHULUAN`).
-2. **Kerapian Spasi dan Indentasi Paragraf** --- Teks isi menggunakan font Libertinus Serif 12pt dengan spasi baris 1.5 (`leading: 0.75em`) dan perataan rata kanan-kiri (*justified*). Baris pertama setiap alinea diindentasi secara presisi sebesar 1.25 cm.
-3. **Penyusunan Tabel dan Gambar yang Bersih** --- Seluruh gambar diposisikan di tengah halaman dengan keterangan caption di bagian bawah. Tabel akademik bergaris tipis 0.5pt abu-abu tanpa border vertikal berlebih.
-4. **Sitasi Otomatis Format APA** --- Seluruh pengutipan dalam teks seperti `(Mädje & Haug, 2024)` secara otomatis ditautkan ke bagian DAFTAR PUSTAKA di akhir dokumen dengan penataan *hanging indent* 1.25 cm.
+[KERANGKA BAB 4.3: Bahas perancangan purwarupa *Figma*, sistem desain (*color palette*, tipografi, komponen standar, pola formulir dan tabel), serta arsitektur navigasi *2-Tier Sidebar* yang diadopsi lintas modul *MSDCFrontend*. Rujuk aset pada *gambar/02-uiux-figma/*.]
 
-## Evaluasi Hasil Keluaran Dokumen Word (DOCX Multi-Pass)
+## Implementasi Modul Data Center Operations
 
-Dokumen Microsoft Word (`Laporan.docx`) yang dihasilkan melalui proses multi-pass berhasil memenuhi persyaratan format formal:
+### Klaster 1: Hirarki Fasilitas Fisik dan Visualisasi Rak 42U
 
-1. **Pemisahan Seksi dan Penomoran Halaman** --- Sampul depan tampil bersih tanpa nomor halaman. Bagian KATA PENGANTAR dan DAFTAR ISI memiliki penomoran angka Romawi kecil (*i, ii*). Pada awal BAB I, penomoran halaman berhasil dimulai ulang (*restart*) dari angka Arab 1 (*1, 2, 3...*).
-2. **Daftar Isi Otomatis Terhubung (Hyperlinked TOC)** --- Entri Daftar Isi dihubungkan dengan *hyperlink internal* dan menampilkan nomor halaman aktual secara presisi berkat proses injeksi nilai cache oleh `docx-pagenum.py`.
-3. **Konsistensi Gaya dan Font** --- Dokumen Word menggunakan font Times New Roman berukuran 12pt pada teks normal dan 14pt tebal pada Heading 1, memastikan paritas visual yang identik dengan dokumen PDF.
+[KERANGKA BAB 4.4.1: Implementasi *Site Manager*, *Room Manager*, dan *Rack Manager* beserta peta elevasi 42U interaktif, validasi tumpang tindih *U-position*, dan *delete guard*. Rujuk aset pada *gambar/03-dc-ops/*.]
 
-## Analisis Komparasi Kinerja dan Efisiensi
+### Klaster 2: Jaringan, Pengkabelan, dan Manajemen IP
 
-Tabel berikut menyajikan perbandingan terperinci antara pipeline **Laporan Generator (Typst Engine)**, pipeline berbasis **LaTeX Tradisional**, dan penyusunan manual menggunakan **Microsoft Word**:
+[KERANGKA BAB 4.4.2: Implementasi *Device Inventory*, *Network Port*, *Cross-Connect*, *OTB Inventory*, dan *IPAM* beserta proteksi *allocation guard* (HTTP 409) pada subnet aktif.]
 
-| Parameter Evaluasi | Laporan Generator (Typst) | LaTeX Tradisional | Microsoft Word Manual |
-|:---|:---|:---|:---|
-| **Waktu Kompilasi Dokumen** | **< 1.0 detik** | 10 -- 30 detik | Tidak ada (Manual) |
-| **Ukuran Toolchain / Instalasi** | **~25 MB** (Binary Typst) | ~4.5 GB (TeX Live) | ~2.5 GB (MS Office) |
-| **Dukungan Version Control (Git)** | **Sangat Baik** (Plain Text) | Sangat Baik (Plain Text)| Sangat Buruk (Binary DOCX)|
-| **Keluaran Format Ganda** | **PDF & DOCX Sinkron** | Hanya PDF | Hanya DOCX |
-| **Penanganan Layout Drift** | **Deterministik & Otomatis** | Deterministik | Sering Bergeser Manual |
-| **Konfigurasi Format Kampus** | **1 Baris YAML Preset** | Modifikasi .cls/macro | Setting Style GUI Manual |
-| **Integrasi AI Agent** | **Terpadu (`prompt.md`)** | Kustom / Manual | Terbatas |
+### Klaster 3: Dasbor NOC, Telemetri Termal, dan Pengawasan CCTV
 
-## Hasil Pengujian Otomatis (Automated Test Suite)
+[KERANGKA BAB 4.4.3: Implementasi dasbor agregasi *NOC*, pemantauan telemetri suhu dan kelembapan *dual-bounds* mengacu *ASHRAE TC 9.9*, serta integrasi pengawasan *CCTV* *HLS* dengan proteksi *Anti-SSRF*.]
 
-Rangkaian pengujian terstruktur menggunakan skrip `test.sh` dilakukan untuk memverifikasi fungsionalitas seluruh komponen. Hasil eksekusi pengujian pada lingkungan terisolasi menghasilkan status lulus 100%:
+### Klaster 4: Operasional Harian, Penagihan Utilisasi, dan Surat DC
 
-```
-=== Test Suite: Laporan Generator ===
+[KERANGKA BAB 4.4.4: Implementasi *Ticket & Remote Hands*, *Work Order* berbasis daftar periksa, *Usage Records & Billing*, serta penerbitan dokumen *Surat Operasional DC* berverifikasi *QR code*.]
 
-[T1] Dependency check                               [OK] 3/3 tools
-[T2] File structure check                           [OK] 8/8 files
-[T3] Metadata check                                 [OK] 2/2 checks
-[T4] Template check                                 [OK] 3/3 checks
-[T5] .gitignore check                               [OK] 2/2 checks
-[T6] Docker check                                   [OK] 2/2 checks
-[T7] Build PDF (Typst Engine)                       [OK] PDF Valid (458 KB)
-[T8] No box-drawing characters                      [OK] Clean text
-[T9] No manual numbering in headings                [OK] Valid AST
-[T10] Metadata fields check                         [OK] 2/2 fields
-[T11] References check (BibTeX structure)           [OK] Valid BibTeX
-[T12] Makefile targets check                        [OK] Valid targets
-[T13] Recursive image processing check              [OK] Recursive find
-[T14] PDF content readability check                 [OK] Readable text
-[T15] Typst engine check                            [OK] Verified
-[T16] DOCX export check (Styles, XML, Sect, Pages)  [OK] 21/21 assertions
-[T17] CLI Helper and Preset Guide check             [OK] 4/4 checks
-[T18] Preset Architecture & University Presets      [OK] 10/10 checks
-[T19] PDF Preset Scanner & Extractor check          [OK] 5/5 checks
-[T20] Preset Linter, Validator & Diff CLI check     [OK] 4/4 checks
+### Klaster 5: Keamanan Akses Fisik dan Proteksi Anti-Replay
 
-========================================================================
-Hasil Akhir: 78 assertions passed, 0 failed (100% Success Rate)
-========================================================================
-```
+[KERANGKA BAB 4.4.5: Implementasi manajemen *Visitor Pass*, *E-Badge* lokal *fail-closed*, stasiun *Scanner Pos Jaga*, serta enam lapis validasi *anti-replay* dalam transaksi penguncian pesimis (*lockForUpdate()*) mengacu *ISO/IEC 27001:2022*. Rujuk aset komposit uji *VP-202611-0004* pada *gambar/03-dc-ops/*.]
 
-Seluruh 78 pengujian terotomatisasi berhasil dieksekusi tanpa galat, membuktikan bahwa pipeline memiliki stabilitas tinggi, kompatibilitas lintas platform yang solid, dan siap digunakan dalam produksi.
+## Integrasi Lintas Modul Tim ERP
+
+[KERANGKA BAB 4.5: Jelaskan secara jujur titik integrasi dan kontrak pertukaran data antara modul *Data Center Operations* dengan modul yang dikembangkan tim lain (*CorePlatform* untuk autentikasi *OAuth2*, *RBAC*, dan *multi-tenancy*; *CRM & Sales* untuk validasi pelanggan, kontrak aktif, dan *Sales Order*; *Finance & Accounting* untuk penagihan utilisasi dan *invoice*; serta *HR & Service Support* untuk data personel dan eskalasi layanan). Wajib mematuhi aturan batas klaim lintas tim pada *SPEC-PKL-KONVERSI.md*.]
+
+## Pengujian dan Validasi Sistem
+
+### Pengujian Fitur Otomatis
+
+[KERANGKA BAB 4.6.1: Paparkan hasil eksekusi pengujian fitur otomatis *PHPUnit* mencakup jumlah *suite*, skenario uji, *assertions*, serta verifikasi keamanan konkurensi dan respons publik.]
+
+### Pengujian Kontrak API
+
+[KERANGKA BAB 4.6.2: Paparkan hasil verifikasi *endpoint* *RESTful API* pada *Postman* mencakup skenario sukses (*HTTP 200 OK*), validasi masukan (*HTTP 422 Unprocessable Entity*), dan proteksi konflik (*HTTP 409 Conflict*).]
+
+### Validasi User Acceptance Testing (UAT) Staging
+
+[KERANGKA BAB 4.6.3: Uraikan pelaksanaan validasi *UAT* pada lingkungan *staging* JTV Surabaya bersama pembimbing lapangan termasuk verifikasi alur *end-to-end* operasional dan proteksi *anti-replay*.]
