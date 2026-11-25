@@ -8,12 +8,12 @@ Dokumen ini memetakan seluruh aset gambar yang sudah tersedia (`READY`, telah di
 
 | Subfolder | Jumlah `READY` | Jumlah `PENDING` | Fokus Konten |
 | :--- | :---: | :---: | :--- |
-| `gambar/01-profil/` | 5 | 0 | Logo UPN, struktur organisasi JTV, LOA, dan MoA/PKS |
+| `gambar/01-profil/` | 6 | 0 | Logo UPN, logo resmi JTV (`.svg`/`.png`), struktur organisasi JTV, LOA, dan MoA/PKS |
 | `gambar/02-uiux-figma/` | 1 | 3 | Kanvas purwarupa Figma (*READY*) + ekspor bersih *Design System* & *2-Tier Sidebar* (*PENDING*) |
 | `gambar/03-dc-ops/` | 21 | 0 | DFD, ERD, 5 diagram arsitektur klaster, tangkapan layar 5 klaster, serta komposit uji *anti-replay* `VP-202611-0004` |
 | `gambar/04-integrasi-tim/` | 6 | 4 | 6 diagram arsitektur modul lintas tim (*READY*) + 4 tangkapan layar antarmuka integrasi tim lain (*PENDING*) |
 | `gambar/05-pengujian/` | 4 | 1 | 3 bukti *Postman* (200/422/409) + hasil *PHPUnit* (*READY*) + foto/berita acara *UAT* (*PENDING*, opsional) |
-| **Total** | **37** | **8** | **Seluruh 37 path aset `READY` terverifikasi ada di `01-laporan-magang/gambar/`** |
+| **Total** | **38** | **8** | **Seluruh 38 path aset `READY` terverifikasi ada di `01-laporan-magang/gambar/`** |
 
 ---
 
@@ -24,8 +24,9 @@ Dokumen ini memetakan seluruh aset gambar yang sudah tersedia (`READY`, telah di
 | ID | Path File | Sumber / Pemilik | Target Sub-Bab | Deskripsi Visual | Status |
 | :--- | :--- | :--- | :--- | :--- | :---: |
 | `PROF-01` | `gambar/01-profil/logo-upn.png` | UPN "Veteran" Jawa Timur (`02-laporan-pkl/gambar/logo.png`) | Sampul | Logo resmi UPN "Veteran" Jawa Timur beresolusi tinggi untuk halaman sampul | `READY` |
-| `PROF-02` | `gambar/01-profil/struktur-organisasi-jtv-direksi.png` | PT JTV / `diagrams/rendered/pkl/` | Bab 2 (Struktur Organisasi) | Bagan struktur organisasi jajaran direksi PT Jawa Pos Media Televisi (JTV) | `READY` |
-| `PROF-03` | `gambar/01-profil/struktur-organisasi-jtv-teknik.png` | PT JTV / `diagrams/rendered/pkl/` | Bab 2 (Struktur Organisasi) | Bagan struktur Direktorat Teknik dan Unit TI beserta posisi tim magang MSDC ERP | `READY` |
+| `PROF-01B` | `gambar/01-profil/logo-jtv.png` (vektor: `logo-jtv.svg`) | PT JTV (pembaruan identitas 1 April 2022) | Bab 2.1 (Sejarah Perusahaan) | Logo resmi PT Jawa Pos Media Televisi (JTV) resolusi tinggi (salinan raster `.png` dari `logo-jtv.svg` untuk kompatibilitas Typst PDF dan Pandoc DOCX) | `READY` |
+| `PROF-02` | `gambar/01-profil/struktur-organisasi-jtv-direksi.png` | PT JTV / `diagrams/rendered/pkl/` | Bab 2.2 (Struktur Organisasi) | Bagan struktur organisasi jajaran direksi PT Jawa Pos Media Televisi (JTV) | `READY` |
+| `PROF-03` | `gambar/01-profil/struktur-organisasi-jtv-teknik.png` | PT JTV / `diagrams/rendered/pkl/` | Bab 2.2 (Struktur Organisasi) | Bagan struktur Direktorat Teknik dan Unit TI beserta posisi tim magang MSDC ERP | `READY` |
 | `PROF-04` | `gambar/01-profil/loa-jtv.png` | PT JTV (`02-laporan-pkl/gambar/berkas-bab4/LOA.png`) | Lampiran 2 | Pindaian resmi *Letter of Acceptance* (LOA) pelaksanaan magang di JTV | `READY` |
 | `PROF-05` | `gambar/01-profil/moa-pks-jtv.png` | FIK UPN & PT JTV (`02-laporan-pkl/gambar/berkas-bab4/MoA.png`) | Bab 2 / Lampiran (Opsional) | Pindaian dokumen Perjanjian Kerja Sama (PKS No. 015/UN63.7/PKS/2024) | `READY` |
 
