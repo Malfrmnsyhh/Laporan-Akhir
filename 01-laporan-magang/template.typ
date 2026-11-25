@@ -11,11 +11,7 @@ $if(margin_top)$
   right: $margin_right$,
 )
 $else$
-#let doc-margin = if "$margin_preset$" == "skripsi-4433" or "$margin_preset$" == "4-4-3-3" {
-  (top: 4cm, bottom: 3cm, left: 4cm, right: 3cm)
-} else {
-  (top: 2cm, bottom: 3cm, left: 2.5cm, right: 2.5cm)
-}
+#let doc-margin = (top: 4cm, bottom: 3cm, left: 4cm, right: 3cm)
 $endif$
 
 #set page(
@@ -27,18 +23,18 @@ $endif$
 $if(font_family)$
 #set text(font: "$font_family$", size: $if(font_size)$$font_size$$else$12pt$endif$)
 $else$
-#set text(font: "Libertinus Serif", size: 12pt)
+#set text(font: "Times New Roman", size: 12pt)
 $endif$
+#set text(hyphenate: false)
 
 $if(line_spacing)$
-#set par(justify: true, leading: $line_spacing$, first-line-indent: $if(first_line_indent)$$first_line_indent$$else$1.25cm$endif$)
+#set par(justify: true, leading: $line_spacing$, first-line-indent: $if(first_line_indent)$$first_line_indent$$else$1.27cm$endif$)
 $else$
-#set par(justify: true, leading: 0.75em, first-line-indent: 1.25cm)
+#set par(justify: true, leading: 0.75em, first-line-indent: 1.27cm)
 $endif$
-#show bibliography: set par(hanging-indent: $if(first_line_indent)$$first_line_indent$$else$1.25cm$endif$, first-line-indent: 0cm)
+#show bibliography: set par(hanging-indent: $if(first_line_indent)$$first_line_indent$$else$1.27cm$endif$, first-line-indent: 0cm)
 
-#let is-journal = ("$doc_type$" == "journal" or "$is_journal$" == "true" or "$cover_show$" == "false")
-#let raw-prefix = if is-journal { "" } else { "$if(heading_chapter_prefix)$$heading_chapter_prefix$$else$BAB $endif$" }
+#let raw-prefix = "$if(heading_chapter_prefix)$$heading_chapter_prefix$$else$BAB $endif$"
 #let chapter-prefix = if raw-prefix == "" {
   ""
 } else if raw-prefix.ends-with(" ") {
@@ -100,33 +96,25 @@ $endif$
   #counter(figure.where(kind: table)).update(0)
   #counter(figure.where(kind: raw)).update(0)
   #counter(math.equation).update(0)
-  #if is-journal [
-    #v(0.6cm)
-    #block(inset: (bottom: 0.3em))[
-      #set text(size: 11pt, weight: "bold")
-      #set par(first-line-indent: 0cm)
-      #it.body
-    ]
-  ] else [
-    #pagebreak(weak: true)
-    #align(center)[
-      #block(inset: (top: 0.5em, bottom: 1.8em))[
-        #text(size: 14pt, weight: "bold")[
-          #if it.numbering != none [
-            #if chapter-prefix != "" [
-              #(chapter-prefix + format-chapter-num(counter(heading).get().at(0)))
-              #linebreak()
-            ] else [
-              #(format-chapter-num(counter(heading).get().at(0)) + ". ")
-            ]
-            #if it.body.has("text") [
-              #upper(it.body.text)
-            ] else [
-              #upper(it.body)
-            ]
+  #pagebreak(weak: true)
+  #align(center)[
+    #block(inset: (top: 0.4em, bottom: 1.5em))[
+      #set par(justify: false, first-line-indent: 0cm)
+      #text(size: 14pt, weight: "bold")[
+        #if it.numbering != none [
+          #if chapter-prefix != "" [
+            #(chapter-prefix + format-chapter-num(counter(heading).get().at(0)))
+            #linebreak()
           ] else [
-            #it.body
+            #(format-chapter-num(counter(heading).get().at(0)) + ". ")
           ]
+          #if it.body.has("text") [
+            #upper(it.body.text)
+          ] else [
+            #upper(it.body)
+          ]
+        ] else [
+          #it.body
         ]
       ]
     ]
@@ -134,19 +122,20 @@ $endif$
 ]
 
 #show heading.where(level: 2): it => {
-  block(above: 1.0em, below: 0.5em)[
+  block(above: 1.0em, below: 0.5em, sticky: true)[
+    #set par(justify: false, first-line-indent: 0cm)
     #text(size: 12pt, weight: "bold")[#it]
   ]
-  par(leading: 0.75em)[]
 }
 
 #show heading.where(level: 3): it => {
-  block(above: 0.8em, below: 0.4em)[
+  block(above: 0.8em, below: 0.4em, sticky: true)[
+    #set par(justify: false, first-line-indent: 0cm)
     #text(size: 12pt, weight: "bold")[#it]
   ]
-  par(leading: 0.75em)[]
 }
 
+#show figure.where(kind: image): set block(breakable: false)
 #show figure: it => it + par[]
 #show list: it => it + par[]
 #show enum: it => it + par[]
@@ -159,11 +148,10 @@ $endif$
     width: 100%,
   )[
     #set text(size: 10.5pt, style: "italic")
-    #set par(justify: true, leading: 0.65em)
+    #set par(justify: true, leading: 0.65em, first-line-indent: 0cm)
     #it.body
   ]
 }
-#show table: it => it + par[]
 #show raw.where(block: true): it => {
   block(
     fill: rgb("#f8f9fa"),
@@ -173,293 +161,298 @@ $endif$
     width: 100%,
   )[
     #set text(font: "DejaVu Sans Mono", size: 8.5pt)
-    #set par(justify: false, leading: 0.55em)
+    #set par(justify: false, leading: 0.55em, first-line-indent: 0cm)
     #it
   ]
 }
 
 #show outline.entry.where(level: 1): set text(weight: "bold")
-#set par(leading: 0.75em)
 
-#let balance-split(title, k) = {
-  let words = title.split(" ")
-  let n = words.len()
-  if n <= 1 {
-    return (title,)
-  }
-  if n <= k {
-    return words
-  }
-  let single-count = lines => lines.map(l => if l.split(" ").len() <= 1 { 1 } else { 0 }).sum()
-  let candidates = ()
-  if k == 2 {
-    for c in range(1, n) {
-      let line1 = words.slice(0, c).join(" ")
-      let line2 = words.slice(c, n).join(" ")
-      let mx = calc.max(line1.len(), line2.len())
-      candidates = candidates + (
-        (mx + 100 * single-count((line1, line2)), (line1, line2)),
-      )
-    }
-  } else if k == 3 {
-    for c1 in range(1, n - 1) {
-      for c2 in range(c1 + 1, n) {
-        let line1 = words.slice(0, c1).join(" ")
-        let line2 = words.slice(c1, c2).join(" ")
-        let line3 = words.slice(c2, n).join(" ")
-        let mx = calc.max(line1.len(), line2.len(), line3.len())
-        candidates = candidates + (
-          (mx + 100 * single-count((line1, line2, line3)), (line1, line2, line3)),
-        )
-      }
-    }
-  }
-  let best = candidates.at(0)
-  for cand in candidates {
-    if cand.at(0) < best.at(0) {
-      best = cand
-    }
-  }
-  best.at(1)
+#set table(
+  stroke: 0.5pt + luma(140),
+  inset: (x: 5pt, y: 5pt),
+  align: left,
+)
+#show table: it => {
+  set text(size: 10pt, hyphenate: false)
+  set par(justify: false, leading: 0.55em, first-line-indent: 0pt)
+  show regex("::|/|_|\\."): m => m + sym.zws
+  show regex("[a-z][A-Z]"): m => m.text.slice(0, 1) + sym.zws + m.text.slice(1)
+  it
+  par[]
 }
-
-#let title-lines = layout(size => {
-  let t = upper("$title$".replace("\n", " ").replace("\r", " "))
-  let lines = if measure(text(t, size: 14pt, weight: "bold")).width <= size.width {
-    (t,)
-  } else {
-    let two = balance-split(t, 2)
-    let w-two = two.map(l => measure(text(l, size: 14pt, weight: "bold")).width)
-      .fold(0pt, calc.max)
-    let orphan = two.any(l => l.split(" ").len() <= 1)
-    if (not orphan) and w-two <= size.width {
-      two
-    } else {
-      balance-split(t, 3)
-    }
-  }
-  let out = ()
-  for i in range(lines.len()) {
-    if i > 0 {
-      out.push(linebreak())
-    }
-    out.push(lines.at(i))
-  }
-  out.join()
-})
-
-#set table(stroke: 0.5pt + luma(140), inset: 4pt)
 #show table.header: set text(weight: "bold")
 #show figure.where(kind: table): set block(breakable: true)
-
+#show figure.where(kind: table): set figure.caption(position: top)
 #set figure.caption(position: bottom)
-#show raw.where(block: true): set text(font: "DejaVu Sans Mono", size: 9pt)
 
-#let is-journal = ("$doc_type$" == "journal" or "$is_journal$" == "true" or "$cover_show$" == "false")
-
-#if is-journal [
-  #set page(numbering: "1")
-  #counter(page).update(1)
-
-  #v(0.4cm)
-  #align(center)[
-    #text(size: 14pt, weight: "bold")[#title-lines]
-    #v(0.5cm)
-    #text(size: 11pt, weight: "bold")[
-      $for(author)$$author.name$$sep$, $endfor$
-    ]
-    $if(institution)$
-    #v(0.15cm)
-    #text(size: 10pt)[$institution$]
-    $endif$
-    $if(email)$
-    #v(0.1cm)
-    #text(size: 9.5pt, font: "DejaVu Sans Mono")[$email$]
-    $endif$
-  ]
-
-  #v(0.5cm)
-  $if(abstract_id)$
-  #block(inset: (x: 0.8cm))[
-    #set par(justify: true, leading: 0.55em, first-line-indent: 0cm)
-    #text(size: 10pt)[
-      #strong[Abstrak] --- #emph[$abstract_id$]
-    ]
-    $if(keywords_id)$
-    #v(0.2cm)
-    #text(size: 9.5pt)[
-      #strong[Kata Kunci:] #emph[$for(keywords_id)$$keywords_id$$sep$, $endfor$]
-    ]
-    $endif$
-  ]
-  #v(0.3cm)
-  $endif$
-
-  $if(abstract_en)$
-  #block(inset: (x: 0.8cm))[
-    #set par(justify: true, leading: 0.55em, first-line-indent: 0cm)
-    #text(size: 10pt, style: "italic")[
-      #strong[Abstract] --- $abstract_en$
-    ]
-    $if(keywords_en)$
-    #v(0.2cm)
-    #text(size: 9.5pt)[
-      #strong[Keywords:] #emph[$for(keywords_en)$$keywords_en$$sep$, $endfor$]
-    ]
-    $endif$
-  ]
-  #v(0.5cm)
-  $endif$
-] else [
-#v(1cm)
-#align(center)[
-  #text(size: 14pt, weight: "bold")[#title-lines]
-]
-$if(subtitle)$
-#v(0.3cm)
-#align(center)[
-  #text(size: 14pt, weight: "bold")[#upper("$subtitle$".replace("\n", " "))]
-]
-$endif$
-$if(course)$
-#v(0.8cm)
-#align(center)[
-  #text(size: 12pt, weight: "bold")[$course$]
-]
-$endif$
-$if(lecturer)$
-#let hide-lecturer = ("$cover_hide_lecturer$" == "true" or "$cover_show_lecturer$" == "false")
-#if not hide-lecturer [
-  #v(0.4cm)
-  #align(center)[
-    #text(size: 11pt)[$if(lecturer_label)$$lecturer_label$$else$Dosen Pengampu:$endif$]
-    #text(size: 12pt, weight: "bold")[$lecturer$]
-  ]
-]
-$endif$
-
-#v(1fr)
-#align(center)[
-  #image("logo.jpg", width: $if(cover_logo_width)$$cover_logo_width$$else$4cm$endif$)
-]
-#v(1fr)
-
-#align(center)[
-  #text(size: 12pt)[Disusun oleh:]
-]
-$for(author)$
-#v(0.3cm)
-#align(center)[
-  #text(size: 12pt, weight: "bold")[$author.name$] \
-  #text(size: 11pt)[$author.nim$]
-]
-$endfor$
-
-#v(1fr)
-#align(center)[
-  #text(size: 14pt, weight: "bold")[#upper("$faculty$".replace("\n", " "))]
-  #linebreak()
-  #text(size: 14pt, weight: "bold")[#upper("$institution$".replace("\n", " "))]
-  #linebreak()
-  #text(size: 14pt, weight: "bold")[#upper("$year$".replace("\n", " "))]
-]
-#v(1cm)
-
-#pagebreak()
-#set page(numbering: "i")
-#counter(page).update(1)
-
-$if(approval)$
-#align(center)[
-  #text(size: 14pt, weight: "bold")[LEMBAR PENGESAHAN]
-  #v(0.8cm)
-  #text(size: 12pt, weight: "bold")[#title-lines]
-]
-#v(0.5cm)
-#align(center)[
-  #text(size: 11pt)[Disusun oleh:] \
+#let doc-authors = (
   $for(author)$
-  #text(size: 11pt, weight: "bold")[$author.name$] #text(size: 11pt)[($author.nim$)] \
-  $endfor$
-]
-#v(0.5cm)
-#align(center)[
-  #text(size: 11pt)[Telah diperiksa dan disetujui untuk diujikan pada:] \
-  #text(size: 11pt)[$if(approval.city)$$approval.city$, $endif$$if(approval.date)$$approval.date$$else$$date$$endif$]
-]
-#v(1cm)
-#grid(
-  columns: (1fr, 1fr),
-  gutter: 20pt,
-  $for(approval.supervisors)$
-  align(center)[
-    #text(size: 10.5pt)[$it.role$] \
-    #v(2cm)
-    #text(size: 10.5pt, weight: "bold")[$it.name$] \
-    $if(it.nip)$#text(size: 9pt)[NIP. $it.nip$]$endif$
-  ],
+  (name: "$author.name$", nim: "$author.nim$"),
   $endfor$
 )
-$if(approval.dean)$
-#v(1cm)
-#align(center)[
-  #text(size: 10.5pt)[Mengetahui,] \
-  #text(size: 10.5pt)[$approval.dean.role$] \
-  #v(2cm)
-  #text(size: 10.5pt, weight: "bold")[$approval.dean.name$] \
-  $if(approval.dean.nip)$#text(size: 9pt)[NIP. $approval.dean.nip$]$endif$
+#let is-group = doc-authors.len() > 1
+
+// ============================================================================
+// 1. HALAMAN SAMPUL (Tanpa Nomor Halaman)
+// ============================================================================
+#block[
+  #set par(justify: false, first-line-indent: 0cm, leading: 0.7em)
+  #v(0.5cm)
+  #align(center)[
+    #text(size: 14pt, weight: "bold")[#upper("$title$".replace("\n", " "))]
+    #v(0.6cm)
+    #text(size: 14pt, weight: "bold")[$if(doc_kind)$$doc_kind$$else$PRAKTIK KERJA LAPANGAN$endif$]
+  ]
 ]
-$endif$
+
+#v(1fr)
+#align(center)[
+  #image("$if(logo)$$logo$$else$gambar/01-profil/logo-upn.png$endif$", width: $if(cover_logo_width)$$cover_logo_width$$else$4.5cm$endif$)
+]
+#v(1fr)
+
+#align(center)[
+  #set par(justify: false, first-line-indent: 0cm, leading: 0.65em)
+  #text(size: 12pt, weight: "bold")[Oleh:]
+  #v(0.35cm)
+  #if is-group [
+    #grid(
+      columns: (auto, auto),
+      column-gutter: 1.5cm,
+      row-gutter: 0.28cm,
+      align: (left, left),
+      ..doc-authors.map(a => (
+        text(size: 12pt)[#a.name],
+        text(size: 12pt)[(#a.nim)],
+      )).flatten()
+    )
+  ] else [
+    #for a in doc-authors [
+      #text(size: 12pt, weight: "bold")[#a.name] \
+      #text(size: 12pt)[(#a.nim)]
+    ]
+  ]
+]
+
+#v(1fr)
+#align(center)[
+  #set par(justify: false, first-line-indent: 0cm, leading: 0.7em)
+  #text(size: 14pt, weight: "bold")[$if(department)$$department$$else$PROGRAM STUDI INFORMATIKA$endif$] \
+  #text(size: 14pt, weight: "bold")[$if(faculty)$$faculty$$else$FAKULTAS ILMU KOMPUTER$endif$] \
+  #text(size: 14pt, weight: "bold")[$if(institution)$$institution$$else$UNIVERSITAS PEMBANGUNAN NASIONAL "VETERAN" JAWA TIMUR$endif$] \
+  #text(size: 14pt, weight: "bold")[$if(year)$$year$$else$2026$endif$]
+]
+#v(0.4cm)
+
+// Mulai halaman depan bernomor Romawi (ii dst., Sampul dihitung i)
+#pagebreak()
+#set page(numbering: "i", number-align: center + bottom)
+#counter(page).update(2)
+
+// ============================================================================
+// 2. LEMBAR PENGESAHAN PRAKTEK KERJA LAPANGAN KONVERSI (4 Tanda Tangan)
+// ============================================================================
+$if(approval)$
+#block[
+  #set par(justify: false, first-line-indent: 0cm, leading: 0.65em)
+  #align(center)[
+    #text(size: 13pt, weight: "bold")[$if(approval.heading)$$approval.heading$$else$LEMBAR PENGESAHAN PRAKTEK KERJA LAPANGAN KONVERSI$endif$]
+  ]
+  #v(0.7cm)
+  #grid(
+    columns: (2.2cm, 0.4cm, 1fr),
+    row-gutter: 0.35cm,
+    align: (left, center, left),
+    text(size: 11pt, weight: "bold")[Judul],
+    text(size: 11pt, weight: "bold")[:],
+    text(size: 11pt, weight: "bold")[#upper("$title$".replace("\n", " "))],
+    text(size: 11pt, weight: "bold")[Oleh],
+    text(size: 11pt, weight: "bold")[:],
+    grid(
+      columns: (1fr, auto),
+      column-gutter: 0.8cm,
+      row-gutter: 0.2cm,
+      ..doc-authors.map(a => (
+        text(size: 11pt, weight: "bold")[#a.name],
+        text(size: 11pt, weight: "bold")[(#a.nim)],
+      )).flatten()
+    ),
+  )
+  #v(0.7cm)
+  #align(center)[
+    #text(size: 11pt, weight: "bold")[Telah Diseminarkan Dalam Ujian PKL, pada :] \
+    #text(size: 11pt, weight: "bold")[Hari $if(approval.exam_day)$$approval.exam_day$$else$........$endif$, Tanggal $if(approval.exam_date)$$approval.exam_date$$else$........$endif$ Bulan $if(approval.exam_month)$$approval.exam_month$$else$Desember$endif$ $if(approval.exam_year)$$approval.exam_year$$else$2026$endif$]
+  ]
+  #v(0.8cm)
+  #align(center)[#text(size: 11pt, weight: "bold")[Menyetujui]]
+  #v(0.35cm)
+  #grid(
+    columns: (1fr, 1fr),
+    gutter: 18pt,
+    $for(approval.supervisors)$
+    align(center)[
+      #text(size: 11pt, weight: "bold")[$it.role$] \
+      #v(2.0cm)
+      #underline(text(size: 10.5pt, weight: "bold")[$it.name$]) \
+      $if(it.nip)$#text(size: 10pt, weight: "bold")[NIP. $it.nip$]$endif$
+    ],
+    $endfor$
+  )
+  $if(approval.officials)$
+  #v(0.9cm)
+  #align(center)[#text(size: 11pt, weight: "bold")[Mengetahui]]
+  #v(0.35cm)
+  #grid(
+    columns: (1fr, 1fr),
+    gutter: 18pt,
+    $for(approval.officials)$
+    align(center)[
+      #text(size: 11pt, weight: "bold")[$it.role$] \
+      $if(it.unit)$#text(size: 11pt, weight: "bold")[$it.unit$] \$endif$
+      #v(2.0cm)
+      #underline(text(size: 10.5pt, weight: "bold")[$it.name$]) \
+      $if(it.nip)$#text(size: 10pt, weight: "bold")[NIP. $it.nip$]$endif$
+    ],
+    $endfor$
+  )
+  $endif$
+]
 #pagebreak()
 $endif$
 
+// ============================================================================
+// 3. SURAT PERNYATAAN KEASLIAN KEGIATAN PKL (Bermaterai Rp10.000)
+// ============================================================================
+$if(statement.enabled)$
+#block[
+  #set par(justify: true, first-line-indent: 0cm, leading: 0.72em)
+  #align(center)[
+    #text(size: 13pt, weight: "bold")[SURAT PERNYATAAN]
+  ]
+  #v(0.6cm)
+  #let pron-cap = if is-group { "Kami" } else { "Saya" }
+  #let pron-low = if is-group { "kami" } else { "saya" }
+  #text(size: 12pt)[#pron-cap yang bertanda tangan di bawah ini:]
+  #v(0.35cm)
+  #for a in doc-authors [
+    #grid(
+      columns: (3.2cm, 0.4cm, 1fr),
+      row-gutter: 0.15cm,
+      [Nama], [:], [#a.name],
+      [NPM], [:], [#a.nim],
+    )
+    #v(0.25cm)
+  ]
+  #v(0.2cm)
+  #text(size: 12pt)[Menyatakan bahwa kegiatan PKL yang #pron-low lakukan memang benar-benar telah #pron-low laksanakan di perusahaan/instansi:]
+  #v(0.3cm)
+  #grid(
+    columns: (4.6cm, 0.4cm, 1fr),
+    row-gutter: 0.2cm,
+    [Nama Perusahaan/Instansi], [:], [$if(partner_name)$$partner_name$$else$PT. JAWA POS MEDIA TELEVISI (JTV)$endif$],
+    [Alamat], [:], [$if(partner_address)$$partner_address$$else$Graha Pena, Jl. Ahmad Yani No. 88, Ketintang, Gayungan, Surabaya, Jawa Timur$endif$],
+  )
+  #v(0.35cm)
+  #text(size: 12pt)[Valid, dan perusahaan/instansi tempat #pron-low melaksanakan PKL benar adanya serta dapat dibuktikan kebenarannya. Jika #pron-low menyalahi surat pernyataan yang #pron-low buat maka #pron-low siap menerima konsekuensi akademik maupun non-akademik. Demikian surat pernyataan ini #pron-low buat sebagai syarat laporan PKL di Program Studi Informatika, Fakultas Ilmu Komputer, Universitas Pembangunan Nasional "Veteran" Jawa Timur.]
+  #v(1.1cm)
+  #if is-group [
+    #grid(
+      columns: (1fr, 1fr),
+      column-gutter: 1.0cm,
+      row-gutter: 1.2cm,
+      ..doc-authors.map(a => align(center)[
+        #set par(justify: false, first-line-indent: 0cm)
+        #box(stroke: 0.5pt + luma(150), inset: (x: 10pt, y: 6pt))[#text(size: 9.5pt)[$if(statement.stamp_label)$$statement.stamp_label$$else$Materai Rp10.000$endif$]]
+        #v(0.9cm)
+        #text(size: 11.5pt, weight: "bold")[#a.name] \
+        #text(size: 11pt)[#a.nim]
+      ])
+    )
+  ] else [
+    #align(right)[
+      #box(width: 7cm)[
+        #set par(justify: false, first-line-indent: 0cm)
+        #align(center)[
+          #text(size: 11.5pt)[$if(city)$$city$$else$Surabaya$endif$, $if(date)$$date$$else$Desember 2026$endif$]
+          #v(0.35cm)
+          #box(stroke: 0.5pt + luma(150), inset: (x: 10pt, y: 6pt))[#text(size: 9.5pt)[$if(statement.stamp_label)$$statement.stamp_label$$else$Materai Rp10.000$endif$]]
+          #v(0.9cm)
+          #for a in doc-authors [
+            #text(size: 11.5pt, weight: "bold")[#a.name] \
+            #text(size: 11pt)[#a.nim]
+          ]
+        ]
+      ]
+    ]
+  ]
+]
+#pagebreak()
+$endif$
+
+// ============================================================================
+// 4. ABSTRAK BAHASA INDONESIA (dengan Tabel Header Mini)
+// ============================================================================
 $if(abstract_id)$
-#align(center)[
-  #text(size: 14pt, weight: "bold")[ABSTRAK]
+#block[
+  #set par(justify: false, first-line-indent: 0cm, leading: 0.6em)
+  #grid(
+    columns: (2.8cm, 0.4cm, 1fr),
+    row-gutter: 0.22cm,
+    align: (left, center, left),
+    text(size: 11pt)[Judul],
+    text(size: 11pt)[:],
+    text(size: 11pt, weight: "bold")[#upper("$title$".replace("\n", " "))],
+    text(size: 11pt)[Studi Kasus],
+    text(size: 11pt)[:],
+    text(size: 11pt)[$if(case_study)$$case_study$$else$PT. Jawa Pos Media Televisi (JTV)$endif$],
+    text(size: 11pt)[Penulis],
+    text(size: 11pt)[:],
+    stack(
+      spacing: 0.15cm,
+      ..doc-authors.map(a => text(size: 11pt)[#a.name])
+    ),
+    text(size: 11pt)[Pembimbing],
+    text(size: 11pt)[:],
+    text(size: 11pt)[$if(lecturer)$$lecturer$$else$Ardhon Rakhmadi, S.Tr.T., M.Kom.$endif$],
+  )
+  #v(0.2cm)
+  #line(length: 100%, stroke: 0.8pt + black)
 ]
-#v(0.5cm)
-#align(center)[
-  #text(size: 11pt, weight: "bold")[#title-lines]
+#v(0.45cm)
+#block[
+  #set par(justify: true, leading: 0.65em, first-line-indent: 0cm)
+  #text(size: 12pt, weight: "bold")[ABSTRAK]
+  #v(0.35cm)
+  #text(size: 12pt)[$abstract_id$]
+  $if(keywords_id)$
+  #v(0.45cm)
+  #text(size: 12pt)[
+    #strong[Kata kunci:] #emph[$for(keywords_id)$$keywords_id$$sep$, $endfor$.]
+  ]
+  $endif$
 ]
-#v(0.5cm)
-#set par(justify: true, leading: 0.65em, first-line-indent: 1cm)
-#text(size: 11pt)[
-  $abstract_id$
-]
-$if(keywords_id)$
-#v(0.5cm)
-#text(size: 10.5pt)[
-  #set par(first-line-indent: 0cm)
-  #strong[Kata Kunci:] #emph[$for(keywords_id)$$keywords_id$$sep$, $endfor$]
-]
-$endif$
 #pagebreak()
 $endif$
 
+// ============================================================================
+// 5. ABSTRACT BAHASA INGGRIS
+// ============================================================================
 $if(abstract_en)$
-#align(center)[
-  #text(size: 14pt, weight: "bold")[ABSTRACT]
+#block[
+  #set par(justify: true, leading: 0.65em, first-line-indent: 0cm)
+  #text(size: 12pt, weight: "bold")[ABSTRACT]
+  #v(0.35cm)
+  #text(size: 12pt, style: "italic")[$abstract_en$]
+  $if(keywords_en)$
+  #v(0.45cm)
+  #text(size: 12pt)[
+    #strong[Keywords:] #emph[$for(keywords_en)$$keywords_en$$sep$, $endfor$.]
+  ]
+  $endif$
 ]
-#v(0.5cm)
-#align(center)[
-  #text(size: 11pt, weight: "bold", style: "italic")[#title-lines]
-]
-#v(0.5cm)
-#set par(justify: true, leading: 0.65em, first-line-indent: 1cm)
-#text(size: 11pt, style: "italic")[
-  $abstract_en$
-]
-$if(keywords_en)$
-#v(0.5cm)
-#text(size: 10.5pt)[
-  #set par(first-line-indent: 0cm)
-  #strong[Keywords:] #emph[$for(keywords_en)$$keywords_en$$sep$, $endfor$]
-]
-$endif$
 #pagebreak()
 $endif$
-
-]
 
 #let opt-daftar-gambar = $if(daftar_gambar)$$daftar_gambar$$else$$if(list_of_figures)$$list_of_figures$$else$false$endif$$endif$
 #let opt-daftar-tabel = $if(daftar_tabel)$$daftar_tabel$$else$$if(list_of_tables)$$list_of_tables$$else$false$endif$$endif$
