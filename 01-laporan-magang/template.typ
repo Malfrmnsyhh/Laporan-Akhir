@@ -350,7 +350,7 @@ $if(statement.enabled)$
   #grid(
     columns: (4.6cm, 0.4cm, 1fr),
     row-gutter: 0.2cm,
-    [Nama Perusahaan/Instansi], [:], [$if(partner_name)$$partner_name$$else$PT. JAWA POS MEDIA TELEVISI (JTV)$endif$],
+    [Nama Perusahaan/Instansi], [:], [$if(partner_name)$$partner_name$$else$PT JAWA POS MEDIA TELEVISI (JTV)$endif$],
     [Alamat], [:], [$if(partner_address)$$partner_address$$else$Graha Pena, Jl. Ahmad Yani No. 88, Ketintang, Gayungan, Surabaya, Jawa Timur$endif$],
   )
   #v(0.35cm)
@@ -405,7 +405,7 @@ $if(abstract_id)$
     text(size: 11pt, weight: "bold")[#upper("$title$".replace("\n", " "))],
     text(size: 11pt)[Studi Kasus],
     text(size: 11pt)[:],
-    text(size: 11pt)[$if(case_study)$$case_study$$else$PT. Jawa Pos Media Televisi (JTV)$endif$],
+    text(size: 11pt)[$if(case_study)$$case_study$$else$PT Jawa Pos Media Televisi (JTV)$endif$],
     text(size: 11pt)[Penulis],
     text(size: 11pt)[:],
     stack(
