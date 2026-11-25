@@ -1,0 +1,29 @@
+# Preset: UPN "Veteran" Jawa Timur - Laporan PKL Konversi (Prodi Informatika)
+# Diselaraskan dari template/Template Laporan Akhir PLK Prodi v3.docx (A4, Margin 4-4-3-3)
+# dan template/LAPORAN PKL.pdf (struktur front-matter PKL Konversi, heading BAB I + 1.1 + 1.1.1, IEEE).
+preset_id: "upn-pkl-konversi"
+name: "UPN 'Veteran' Jawa Timur - Laporan PKL Konversi"
+description: "Format resmi Laporan Praktik Kerja Lapangan (PKL) Konversi Prodi Informatika FIK UPN Veteran Jatim (A4, Margin 4-4-3-3, Times New Roman 12pt, Spasi 1.5, First Line Indent 1.27cm, Penomoran BAB I / 1.1 / 1.1.1, Referensi IEEE)."
+
+# Margin halaman (Standar Penjilidan Resmi Prodi 4-4-3-3)
+margin_top: 4cm
+margin_bottom: 3cm
+margin_left: 4cm
+margin_right: 3cm
+
+# Tipografi
+font_family: "Times New Roman"
+font_size: 12pt
+line_spacing: 0.75em
+first_line_indent: 1.27cm
+
+# Penomoran Heading (BAB I, 1.1, 1.1.1 tanpa titik akhir — sesuai template/LAPORAN PKL.pdf)
+heading_chapter_prefix: "BAB "
+heading_chapter_num_format: "roman"
+heading_sub_dot: false
+heading_subsub_dot: false
+
+# Pengaturan Sampul & Sitasi
+cover_show_lecturer: false
+cover_logo_width: 4.5cm
+csl: "ieee.csl"

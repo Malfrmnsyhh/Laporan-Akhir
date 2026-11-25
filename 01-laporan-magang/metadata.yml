@@ -1,32 +1,100 @@
 ---
-title: "Otomatisasi Pembuatan Dokumen Laporan Akademik Menggunakan Pandoc, Typst, dan Markdown"
-subtitle: "Laporan Dokumentasi Pipeline dan Arsitektur Multi-Engine"
+# ==============================================================================
+# KONFIGURASI METADATA LAPORAN PKL KONVERSI (01-laporan-magang)
+# Acuan: template/LAPORAN PKL.pdf & template/Template Laporan Akhir PLK Prodi v3.docx
+# ==============================================================================
+
+# Mode Laporan: "Individu" atau "Kelompok"
+# Jika "Kelompok", aktifkan (uncomment) entri anggota tambahan pada bagian `author:` di bawah.
+mode_laporan: "Individu"
+
+title: "Rancang Bangun Ekosistem Enterprise ERP Data Center (MSDC) Berbasis Arsitektur Modular Laravel dan React pada PT Jawa Pos Media Televisi (JTV)"
+doc_kind: "PRAKTIK KERJA LAPANGAN"
+program: "Praktek Kerja Lapangan Konversi"
+pks_number: "No. PKS: 015/UN63.7/PKS/2024"
+case_study: "PT. Jawa Pos Media Televisi (JTV)"
+partner_name: "PT. JAWA POS MEDIA TELEVISI (JTV)"
+partner_address: "Graha Pena, Jl. Ahmad Yani No. 88, Ketintang, Gayungan, Surabaya, Jawa Timur"
+
+# Daftar Penulis (mendukung 1 penulis / Individu maupun multi-penulis / Kelompok)
 author:
-  - name: "Nama Mahasiswa 1"
-    nim: "101234567"
-  - name: "Nama Mahasiswa 2"
-    nim: "101234568"
-  - name: "Nama Mahasiswa 3"
-    nim: "101234569"
-lecturer: "Dr. Nama Dosen Pengampu, M.Kom."
-lecturer_label: "Dosen Pengampu:"
-course: "Proyek Perangkat Lunak"
-institution: "Universitas Example"
-faculty: "Program Studi Informatika"
-year: "2026/2027"
-date: "Agustus 2026"
-daftar_gambar: false
-daftar_tabel: false
-# Komponen halaman depan opsional (aktifkan jika diperlukan):
-# abstract_id: |
-#   Ringkasan atau abstrak laporan dalam Bahasa Indonesia...
-# keywords_id:
-#   - Kata Kunci 1
-#   - Kata Kunci 2
-# abstract_en: |
-#   Summary or abstract of the report in English...
-# keywords_en:
-#   - Keyword 1
-#   - Keyword 2
-preset: "standard"
+  - name: "Muhammad Akmal Firmansyah"
+    nim: "24081010291"
+    module: "Modul Data Center Operations (5 Klaster) & Standardisasi UI/UX Figma Global ERP"
+  # --- [OPSIONAL: Aktifkan jika Mode Laporan = Kelompok] ---
+  # - name: "[NAMA ANGGOTA 2]"
+  #   nim: "[NPM ANGGOTA 2]"
+  #   module: "[Modul yang Dikerjakan Anggota 2]"
+  # - name: "[NAMA ANGGOTA 3]"
+  #   nim: "[NPM ANGGOTA 3]"
+  #   module: "[Modul yang Dikerjakan Anggota 3]"
+
+lecturer: "Ardhon Rakhmadi, S.Tr.T., M.Kom."
+lecturer_label: "Dosen Pembimbing:"
+department: "PROGRAM STUDI INFORMATIKA"
+faculty: "FAKULTAS ILMU KOMPUTER"
+institution: "UNIVERSITAS PEMBANGUNAN NASIONAL \"VETERAN\" JAWA TIMUR"
+city: "Surabaya"
+year: "2026"
+date: "Desember 2026"
+
+logo: "gambar/01-profil/logo-upn.png"
+cover_logo_width: "4.5cm"
+daftar_tabel: true
+daftar_gambar: true
+preset: "upn-pkl-konversi"
+csl: "ieee.csl"
+
+# Lembar Pengesahan PKL Konversi (4 Kolom Tanda Tangan: Menyetujui 2 + Mengetahui 2)
+approval:
+  heading: "LEMBAR PENGESAHAN PRAKTEK KERJA LAPANGAN KONVERSI"
+  exam_day: "........"      # [PERLU DIISI: Hari ujian seminar PKL, misal: Rabu]
+  exam_date: "........"     # [PERLU DIISI: Tanggal ujian, misal: 23]
+  exam_month: "Desember"    # [PERLU DIISI/KONFIRMASI: Bulan ujian]
+  exam_year: "2026"
+  city: "Surabaya"
+  date: "Desember 2026"
+  supervisors:
+    - role: "Dosen Pembimbing"
+      name: "Ardhon Rakhmadi, S.Tr.T., M.Kom."
+      nip: "199108052024061002"
+    - role: "Pembimbing Lapangan"
+      name: "M. Triman Prasodjo, S.T."
+      nip: "19900201"
+  officials:
+    - role: "Dekan"
+      unit: "Fakultas Ilmu Komputer"
+      name: "Prof. Dr. Ir. Novirina Hendrasarie, M.T."
+      nip: "19681126 199403 2 001"
+    - role: "Koordinator Program Studi"
+      unit: "Informatika"
+      name: "Dr. Intan Yuniar Purbasari, S.Kom., M.Sc."
+      nip: "[PERLU KONFIRMASI NIP]"
+
+# Surat Pernyataan Keaslian Kegiatan PKL (bermaterai Rp10.000)
+statement:
+  enabled: true
+  stamp_label: "Materai Rp10.000"
+
+# Abstrak ID (dengan tabel header mini: Judul, Studi Kasus, Penulis, Pembimbing) & Abstract EN
+# [DRAF KERANGKA — Lengkapi narasi final setelah penulisan Bab I–V selesai]
+abstract_id: |
+  [DRAF ABSTRAK BAHASA INDONESIA: Diisi setelah penyusunan Bab I hingga Bab V selesai. Merangkum latar belakang kebutuhan sistem ERP pusat data di PT Jawa Pos Media Televisi (JTV), cakupan ekosistem MSDC Enterprise ERP (UI/UX Figma, modul Data Center Operations 5 klaster, serta integrasi lintas modul tim ERP), metode pengembangan arsitektur modular Laravel dan React, serta hasil pengujian dan validasi.]
+keywords_id:
+  - "Enterprise Resource Planning"
+  - "Data Center Operations"
+  - "Arsitektur Modular"
+  - "Laravel"
+  - "React"
+  - "UI/UX Design System"
+
+abstract_en: |
+  [DRAFT ENGLISH ABSTRACT: To be finalized after Chapters I through V are completed. Summarizes the background of data center ERP digitalization at PT Jawa Pos Media Televisi (JTV), the scope of the MSDC Enterprise ERP ecosystem (Figma UI/UX Design System, 5-cluster Data Center Operations module, and cross-team ERP integration points), the modular Laravel and React architecture methodology, and verification results.]
+keywords_en:
+  - "Enterprise Resource Planning"
+  - "Data Center Operations"
+  - "Modular Architecture"
+  - "Laravel"
+  - "React"
+  - "UI/UX Design System"
 ...
